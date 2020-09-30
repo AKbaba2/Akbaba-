@@ -1,0 +1,739 @@
+//Whew, hard work. But it's actually pretty fun! :D
+
+//Please note that this is a makeshift map and that territory locations are not precise.
+
+/*Controls
+    Zoom in: -/+
+    Select area: Click
+    Deselect area: Click on same area/area of same color
+*/
+
+//https://www.mastersofgames.com/images/board-mod-classic/risk-refresh-2016-components.jpg
+
+//https://www.bing.com/images/search?view=detailV2&ccid=aonoxF0O&id=7292E066CC1A3FF6F53718ACBE702E6544221432&thid=OIP.aonoxF0OrQ92YObNY9Ce1AHaEK&mediaurl=https%3a%2f%2fis3-ssl.mzstatic.com%2fimage%2fthumb%2fPurple122%2fv4%2f51%2fcb%2ff8%2f51cbf87d-e564-ee02-cacf-8ca34a4c0d70%2fsource%2f750x750bb.jpeg&exph=422&expw=750&q=risk+on+ipad&simid=608018611684574881&selectedIndex=13&ajaxhist=0
+
+var yourName = [//Choose your name!
+    "Snoozy McMuffin",//YELLOW PLAYER
+    "Snoozy McCupcake",//BLUE PLAYER
+    "Snoozy McWaffle",//GREEN PLAYER
+    "Snoozy McCookie",//ORANGE PLAYER
+    "Snoozy McBread",//RED PLAYER
+    "Snoozy McPancake",//PURPLE PLAYER
+];
+
+/**Instructions
+ * 
+ * @Terms
+ * Battler = First territory chosen
+ * Opponent = Second territory chosen
+ * 
+ * You can choose any territory on the map.
+ * After you click it, click another territory to battle it.
+ * 
+ * @Battling Rules:
+ *      Opponent territory must be touching Battler territory
+ *      Opponent territory must be a different color than the Battler territory
+ *      Battler territory must have 1+ soldiers
+ *      Battler must be the same color as the tab color at the bottom
+ *      The stage must be "Attack".
+ * 
+ * Please note that this is a makeshift map and that territory locations are not precise. So to make it easy, when you choose a Battler territory, the Opponent territory can only be a territory that has a mark.
+ * 
+ * @Extra information
+ * The two numbers that pop up after you press the opponent territory are the dice amount. The first amount is the battler territory dice. The second amount is the opponent territory dice. If the battler dice is larger than the opponent dice, then the battler is the winner, and vice versa. Also the words "Loser" and "Winner" will be shown to ease understanding. The "Loser" territory will lose 1 soldier and Winner loses/gains nothing. But if the Winner was the Battler and the Opponent lost all his soldiers, meaning that the Opponent had 1 soldier and now has 0, then the Opponent loses his territory to the Battler and the territory becomse the color of the Battler. The Opponent has the larger percentage of winning because if the two dice are equal, then the Opponent wins. For example:
+ * Opponent = 2 | Battler = 2
+ * Opponent wins. Battler loses soldier
+ * 
+ * Opponent = 3 | Battler = 4
+ * Battler wins. Opponent loses soldier
+ * 
+ * Opponent = 5 | Battler = 1
+ * Opponent wins. Battler loses soldier
+**/
+
+/**  To-do list
+ * Make map outline [DONE]
+ * Add colors [DONE]
+ * Add army amounts [DONE]
+ * Make territory functions [DONE]
+ * Update territory function [DONE]
+ * Add timer [DONE]
+ * Add control panel [DONE]
+ * Update control panel function [WIP]
+**/
+
+var currentPlayer = 0;//Current Player
+var currentStage = -1;//Draft/Attack/Fortify
+var currentClick = "";//Current army chosen
+var currentColor = "";//Current fill of army
+var currentDice = "";//Current dice amount
+var territoryName = "";//Battler territory name
+
+var otherDice = "";//The other dice amount
+var otherColor = "";//The other army color
+var otherTerritoryName = "";//Opponent terr name
+
+var draftAmount = 0;//# of new soldiers per turn
+var timer = 0;//Turn timer
+var ispressingproceedbutton = false;//Next stage
+var clicked = false;//Army chosen?
+var diceRandom = false;//Shows the dice
+
+        //Gives bonus if you have whole continent
+var territoryBonus = [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    5,
+    5,
+    7,
+    2,
+    3,
+    3,
+];
+
+        //Zoom vars
+var zoomvars = [
+    1, 0, 0, 0, 0,//zoom, horizontal, vertical, speed, speed
+];
+
+        //Draft/Attack/Fortify
+var stages = [
+    "P r e p a r e",
+    "D r a f t",
+    "A t t a c k",
+    "F o r t i f y"
+];
+
+        //Possible Players
+var possiblePlayers = [
+    color(255, 255, 0),//Yellow
+    color(0, 0, 255),//Blue
+    color(0, 255, 0),//Green
+    color(255, 128, 0),//Orange
+    color(255, 0, 0),//Red
+    color(160, 32, 240),//Purple
+];
+
+        //Zoom in and out (-/+)
+var zoomin = function() {
+    if (zoomvars[1]>0) {
+        zoomvars[1]=0;
+        zoomvars[3]=0;
+    }
+    if (zoomvars[1]<0 && zoomvars[0]===1) {
+        zoomvars[1]=0;
+        zoomvars[3]=0;
+    } else if (zoomvars[1]<-140 && zoomvars[0]===1.25) {
+        zoomvars[1]=-140;
+        zoomvars[3]=0;
+    } else if (zoomvars[1]<-235 && zoomvars[0]===1.5) {
+        zoomvars[1]=-235;
+        zoomvars[3]=0;
+    } else if (zoomvars[1]<-300 && zoomvars[0]===1.75) {
+        zoomvars[1]=-300;
+        zoomvars[3]=0;
+    } else if (zoomvars[1]<-350 && zoomvars[0]===2) {
+        zoomvars[1]=-350;
+        zoomvars[3]=0;
+    }
+    if (zoomvars[2]>0) {
+        zoomvars[2]=0;
+        zoomvars[4]=0;
+    } else if (zoomvars[2]<0 && zoomvars[0]===1) {
+        zoomvars[2]=0;
+        zoomvars[4]=0;
+    } else if (zoomvars[2]<-80 && zoomvars[0]===1.25) {
+        zoomvars[2]=-80;
+        zoomvars[4]=0;
+    } else if (zoomvars[2]<-150 && zoomvars[0]===1.5) {
+        zoomvars[2]=-150;
+        zoomvars[4]=0;
+    } else if (zoomvars[2]<-200 && zoomvars[0]===1.75) {
+        zoomvars[2]=-200;
+        zoomvars[4]=0;
+    } else if (zoomvars[2]<-230 && zoomvars[0]===2) {
+        zoomvars[2]=-230;
+        zoomvars[4]=0;
+    }
+    
+    zoomvars[1]+=zoomvars[3];
+    zoomvars[2]+=zoomvars[4];
+    if (keyIsPressed) {
+        if (keyCode===RIGHT) {
+            zoomvars[3]--;
+            zoomvars[1]--;
+        }
+        if (keyCode===LEFT) {
+            zoomvars[3]++;
+        }
+        if (keyCode===UP) {
+            zoomvars[4]++;
+        }
+        if (keyCode===DOWN) {
+            zoomvars[4]--;
+        }
+    } else if (!keyIsPressed) {
+        if (zoomvars[3]>0) {
+            zoomvars[3]--;
+        }
+        if (zoomvars[3]<0) {
+            zoomvars[3]++;
+        }
+        if (zoomvars[4]>0) {
+            zoomvars[4]--;
+        }
+        if (zoomvars[4]<0) {
+            zoomvars[4]++;
+        }
+    }
+};
+
+        //Name of armies
+var armyName = [
+    "Alaska",
+    "Northwest Territory",
+    "Greenland",
+    "Alberta",
+    "Ontario",
+    "Eastern Canada",
+    "Western US",
+    "Eastern US",
+    "Central America",
+    "Iceland",
+    "Scandinavia",
+    "Great Britain",
+    "Northern Europe",
+    "Western Europe",
+    "Southern Europe",
+    "Russia",
+    "Kamchatka",
+    "Yakutsk",
+    "Siberia",
+    "Ural",
+    "Irkutsk",
+    "Mongolia",
+    "Japan",
+    "Afghanistan",
+    "China",
+    "Middle East",
+    "India",
+    "Southeast Asia",
+    "Venezuela",
+    "Brazil",
+    "Peru",
+    "Argentina",
+    "North Africa",
+    "Egypt",
+    "East Africa",
+    "Central Africa",
+    "South Africa",
+    "Madagascar",
+    "Indonesia",
+    "New\nGuinea",
+    "Western\nAustralia",
+    "Eastern\nAustralia",
+];
+
+        //Font size of army names
+var armyNameSize = [
+    25, 12, 15, 15, 15, 8, 14, 13, 8, 13, 11, 10, 9, 8, 9, 23, 13, 12, 14, 20, 12, 11, 10, 14, 14, 13, 14, 10, 13, 25, 20, 20, 12, 12, 9, 7, 16, 7, 14, 8, 10, 10
+];
+
+        //Color of armies
+var armyColor = [
+// North America 0-8
+    color(255, 255, 0),// Alaska
+    color(255, 255, 0),// Northwest Terr
+    color(255, 255, 0),// Greenland
+    color(255, 255, 0),// Alberta
+    color(255, 255, 0),// Ontario
+    color(255, 255, 0),// Eastern Canada
+    color(255, 255, 0),// Western U.S
+    color(255, 255, 0),// Eastern U.S
+    color(255, 255, 0),// Central America
+// Europe 9-15
+    color(0, 0, 255),// Iceland
+    color(0, 0, 255),// Scandinavia
+    color(0, 0, 255),// Great Britain
+    color(0, 0, 255),// Northern Europe
+    color(0, 0, 255),// Wester Europe
+    color(0, 0, 255),// Southern Europe
+    color(0, 0, 255),// Russia
+// Asia 16-27
+    color(0, 255, 0),// Kamchatka
+    color(0, 255, 0),// Yakutsk
+    color(0, 255, 0),// Siberia
+    color(0, 255, 0),// Ural
+    color(0, 255, 0),// Irkutsk
+    color(0, 255, 0),// Mongolia
+    color(0, 255, 0),// Japan
+    color(0, 255, 0),// Afghanistan
+    color(0, 255, 0),// China
+    color(0, 255, 0),// Middle East
+    color(0, 255, 0),// India
+    color(0, 255, 0),// Southeast Asia
+// South America 28-31
+    color(255, 128, 0),// Venezuela
+    color(255, 128, 0),// Brazil
+    color(255, 128, 0),// Peru
+    color(255, 128, 0),// Argentina
+// Africa 32-37
+    color(255, 0, 0),// North Africa
+    color(255, 0, 0),// Egypt
+    color(255, 0, 0),// East Africa
+    color(255, 0, 0),// Central Africa
+    color(255, 0, 0),// South Africa
+    color(255, 0, 0),// Madagascar
+// Australia 38-41
+    color(160, 32, 240),// Indonesia
+    color(160, 32, 240),// New Guinea
+    color(160, 32, 240),//WesternAustralia
+    color(160, 32, 240),//EasternAustralia
+];
+
+        //Amount of soldiers in armies
+var armyAmount = [
+// North America 0-8
+    6,// Alaska
+    6,// Northwest Terr
+    6,// Greenland
+    6,// Alberta
+    6,// Ontario
+    6,// Eastern Canada
+    6,// Western U.S
+    6,// Eastern U.S
+    6,// Central America
+// Europe 9-15
+    6,// Iceland
+    6,// Scandinavia
+    6,// Great Britain
+    6,// Northern Europe
+    6,// Wester Europe
+    6,// Southern Europe
+    6,// Russia
+// Asia 16-27
+    6,// Kamchatka
+    6,// Yakutsk
+    6,// Siberia
+    6,// Ural
+    6,// Irkutsk
+    6,// Mongolia
+    6,// Japan
+    6,// Afghanistan
+    6,// China
+    6,// Middle East
+    6,// India
+    6,// Southeast Asia
+// South America 28-31
+    6,// Venezuela
+    6,// Brazil
+    6,// Peru
+    6,// Argentina
+// Africa 32-37
+    6,// North Africa
+    6,// Egypt
+    6,// East Africa
+    6,// Central Africa
+    6,// South Africa
+    6,// Madagascar
+// Australia 38-41
+    6,// Indonesia
+    6,// New Guinea
+    6,//WesternAustralia
+    6,//EasternAustralia
+];
+
+        //Army coordinates
+var armycoordinatesX = [
+    0*(7/6), 65*(7/6), 190*(7/6), 65*(7/6), 130*(7/6), 180*(7/6), 85*(7/6), 150*(7/6), 110*(7/6), 260*(7/6), 310*(7/6), 250*(7/6), 300*(7/6), 250*(7/6), 300*(7/6), 360*(7/6), 540*(7/6), 500*(7/6),460*(7/6), 420*(7/6), 500*(7/6), 500*(7/6), 570*(7/6), 420*(7/6), 500*(7/6), 360*(7/6), 430*(7/6), 500*(7/6), 110*(7/6), 150*(7/6), 110*(7/6), 120*(7/6), 250*(7/6), 310*(7/6), 350*(7/6), 310*(7/6), 310*(7/6), 410*(7/6), 470*(7/6), 565*(7/6), 470*(7/6), 510*(7/6),
+];
+var armycoordinatesY = [
+    90, 90, 45, 140, 140, 130, 190, 190, 240, 90, 110, 145, 160, 210, 210, 110, 80, 75, 70, 75, 125, 175, 165, 200, 225, 250, 250, 275, 290, 340, 340, 430, 290, 290, 335, 335, 420, 430, 360, 380, 420, 420,
+];
+var armycoordinatesW = [
+    65*(7/6), 90*(7/6), 70*(7/6), 65*(7/6), 50*(7/6), 50*(7/6), 65*(7/6), 60*(7/6), 50*(7/6), 50*(7/6), 50*(7/6), 50*(7/6), 60*(7/6), 50*(7/6), 60*(7/6), 60*(7/6), 55*(7/6), 40*(7/6), 40*(7/6), 40*(7/6), 40*(7/6), 50*(7/6), 25*(7/6), 80*(7/6), 70*(7/6), 70*(7/6), 70*(7/6), 60*(7/6), 80*(7/6), 70*(7/6), 40*(7/6), 80*(7/6), 60*(7/6), 50*(7/6), 40*(7/6), 40*(7/6), 80*(7/6), 30*(7/6), 60*(7/6), 30*(7/6), 40*(7/6), 40*(7/6),
+];
+var armycoordinatesH = [
+    75, 50, 50, 50, 50, 60, 50, 50, 50, 50, 50, 50, 50, 50, 50, 140, 70, 50, 130, 125, 50, 50, 50, 50, 50, 50, 50, 50, 50, 90, 90, 80, 65, 45, 85, 85, 70, 60, 50, 50, 70, 70,
+];
+
+        //Possible targets of current army
+var possibleTargets = [
+    ["Alaska","Northwest Territory","", "Alberta", "","","","","","","","","","","","","Kamchatka",],
+    ["Alaska", "Northwest Territory", "Greenland", "Alberta", "Ontario",],
+    ["","Northwest Territory","Greenland","", "Ontario", "Eastern Canada","","","", "Iceland",],
+    ["Alaska", "Northwest Territory","","Alberta", "Ontario","", "Western US",],
+    ["","NorthWest Territory", "Greenland", "Alberta","Ontario", "Eastern Canada","Western US", "Eastern US"],
+    ["","","Greenland","", "Ontario","Eastern Canada","", "Eastern US",],
+    ["","","","Alberta", "Ontario","","Western US", "Eastern US", "Central America",],
+    ["","","","","Ontario", "Eastern Canada", "Western US","Eastern US", "Central America",],
+    ["","","","","","","Western US", "Eastern US","Central America","","","","","","","","","","","","","","","","","","","", "Venezuela",],
+    ["","","Greenland","","","","","","","Iceland","Scandinavia","Great Britain"],
+    ["","","","","","","","","","Iceland","Scandinavia","Great Britain","Northern Europe","","","Russia"],
+    ["","","","","","","","","","Iceland","Scandinavia","Great Britain","Northern Europe","Western Europe"],
+    ["","","","","","","","","","","Scandinavia","Great Britain","Northern Europe","Western Europe","Southern Europe","Russia"],
+    ["","","","","","","","","","","","Great Britain","Northern Europe","Western Europe","Southern Europe","","","","","","","","","","","","","","","","","","North Africa"],
+    ["","","","","","","","","","","","","Northern Europe","Western Europe","Southern Europe","Russia","","","","","","","","","","Middle East","","","","","","","North Africa","Egypt"],
+    ["","","","","","","","","","","Scandinavia","","Northern Europe","","Southern Europe","Russia","","","","Ural","","","","Afghanistan","","Middle East"],
+    ["Alaska","","","","","","","","","","","","","","","","Kamchatka","Yakutsk","","","Irkutsk","Mongolia","Japan"],
+    ["","","","","","","","","","","","","","","","","Kamchatka","Yakutsk","Siberia","","Irkutsk"],
+    ["","","","","","","","","","","","","","","","","","Yakutsk","Siberia","Ural","Irkutsk","Mongolia","","","China"],
+    ["","","","","","","","","","","","","","","","Russia","","","Siberia","Ural","","","","Afghanistan","China"],
+    ["","","","","","","","","","","","","","","","","Kamchatka","Yakutsk","Siberia","","Irkutsk","Mongolia"],
+    ["","","","","","","","","","","","","","","","","Kamchatka","","Siberia","","Irkutsk","Mongolia","Japan","","China"],
+    ["","","","","","","","","","","","","","","","","Kamchatka","","","","","Mongolia","Japan"],
+    ["","","","","","","","","","","","","","","","Russia","","","","Ural","","","","Afghanistan","China","Middle East", "India"],
+    ["","","","","","","","","","","","","","","","","","","Siberia","Ural","","Mongolia","","Afghanistan","China","", "India","Southeast Asia"],
+    ["","","","","","","","","","","","","","","Southern Europe","Russia","","","","","","","","Afghanistan","","Middle East", "India","","","","","","","Egypt","East Africa"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","Afghanistan","China","Middle East", "India","Southeast Asia"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","China","", "India","Southeast Asia","","","","","","","","","","","Indonesia"],
+    ["","","","","","","","","Central America","","","","","","","","","","","","","","","","","", "","","Venezuela","Brazil","Peru"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","", "","","Venezuela","Brazil","Peru","Argentina","North Africa"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","", "","","Venezuela","Brazil","Peru","Argentina"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","", "","","","Brazil","Peru","Argentina"],
+    ["","","","","","","","","","","","","","Western Europ","Southern Europe","","","","","","","","","","","","","","","Brazil","","","North Africa","Egypt","East Africa","Central Africa"],
+    ["","","","","","","","","","","","","","","Southern Europe","","","","","","","","","","","Middle East","","","","","","","North Africa","Egypt","East Africa"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","Middle East","","","","","","","North Africa","Egypt","East Africa","Central Africa","South Africa","Madagascar"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","North Africa","","East Africa","Central Africa","South Africa"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","East Africa","Central Africa","South Africa","Madagascar"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","East Africa","","South Africa","Madagascar"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","","","Southeast Asia","","","","","","","","","","","Indonesia","New\nGuinea","Western\nAustralia"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","Indonesia","New\nGuinea","","Eastern\nAustralia"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","Indonesia","","Western\nAustralia","Eastern\nAustralia"],
+    ["","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","New\nGuinea","Western\nAustralia","Eastern\nAustralia"],
+    
+];
+
+var controlPanel = function(currentPlayerColor) {
+    fill(0, 0, 0);
+    rect(0,0,width,10);
+    fill(currentPlayerColor);
+    rect(-5,-1,timer/2+10,11, 20);
+    fill(0, 0, 0, 130);
+    noStroke();
+    rect(275,525,150,100,20);//Shadowed block
+    if (currentStage===0) {
+        fill(possiblePlayers[currentPlayer]);
+    }
+    rect(305,530,25,10);//Shadowed block
+    fill(0, 0, 0, 130);
+    if (currentStage===1) {
+        fill(possiblePlayers[currentPlayer]);
+    }
+    rect(337,530,25,10);//Shadowed block
+    fill(0, 0, 0, 130);
+    if (currentStage===2) {
+        fill(possiblePlayers[currentPlayer]);
+    }
+    rect(370,530,25,10);//Shadowed block
+    textFont(createFont("Impact"));
+    textSize(20);
+    fill(255, 255, 255);
+    text(stages[currentStage+1],350,554);
+    
+    stroke(0, 0, 0);
+    fill(currentPlayerColor);
+    ellipse(270,550,60,60);//Player face bg
+    ellipse(430,550,60,60);//Proceed button bg
+    noStroke();
+    fill(0, 0, 0, 130);
+    ellipse(430,550,45,45);//Proceed button shad
+    pushMatrix();
+    if (ispressingproceedbutton===true) {
+        translate(0,3);
+    }
+    stroke(0, 0, 0);
+    fill(0, 255, 0);
+    ellipse(430,547,45,45);//Proceed button
+    fill(255, 255, 255);
+    beginShape(); {
+    vertex(442, 547);
+    vertex(425, 562);
+    vertex(420, 557);
+    vertex(430, 547);
+    vertex(420, 537);
+    vertex(425, 532);
+    vertex(442, 547);
+    } endShape();//Arrow
+    popMatrix();
+    fill(currentPlayerColor);
+    rect(250,570,200,100,20);//Name block
+    fill(0, 0, 0);
+    textFont(createFont("comic sans ms"));
+    text(yourName[currentPlayer],350,586);
+    
+    if (mouseIsPressed && dist(mouseX,mouseY,430,547) <=45) {
+        ispressingproceedbutton=true;
+    } else {
+        ispressingproceedbutton=false;
+    }
+    text(draftAmount,270,550);
+};
+
+var territoryBonusText = function(x, y, size, paint, txt, territoryCount) {
+    fill(paint);
+    ellipse(x*zoomvars[0]+(zoomvars[1]*zoomvars[0]),y*zoomvars[0]+(zoomvars[2]*zoomvars[0]),size,size);
+    rectMode(CENTER);
+    rect(x*zoomvars[0]+(zoomvars[1]*zoomvars[0]),(y+size/2/zoomvars[0])*zoomvars[0]+(zoomvars[2]*zoomvars[0]),60,20,20);
+    rectMode(CORNER);
+    fill(0, 0, 0);
+    textSize(10);
+    text(txt,x*zoomvars[0]+(zoomvars[1]*zoomvars[0]),y*zoomvars[0]+(zoomvars[2]*zoomvars[0]));
+    text(territoryCount+" territories",x*zoomvars[0]+(zoomvars[1]*zoomvars[0]),(y+size/2/zoomvars[0])*zoomvars[0]+(zoomvars[2]*zoomvars[0]));
+};
+
+draw = function() {
+    if (currentStage!==-1) {
+        //timer++;
+    } else {
+        timer=0;
+    }
+    if (timer>1400) {
+        timer=0;
+        currentStage=0;
+        if (currentPlayer<5) {
+            currentPlayer++;
+        } else {
+            currentPlayer=0;
+        }
+    }
+    background(255, 255, 255);
+    textFont(createFont("times new roman"));
+    textAlign(CENTER,CENTER);
+    stroke(0, 0, 0);
+    zoomin();
+    strokeWeight(1);
+    pushMatrix();
+    scale(zoomvars[0]);
+    translate(zoomvars[1],zoomvars[2]);
+    
+    //draws the territories
+    for (var f = 0; f <=41; f++) {
+        textSize(15);
+        
+        fill(armyColor[f]);
+        
+        //Draws the territories
+        rect(armycoordinatesX[f],armycoordinatesY[f],armycoordinatesW[f],armycoordinatesH[f]);
+        
+        //Circle around the amount per area
+        ellipse(armycoordinatesX[f]+armycoordinatesW[f]/2,armycoordinatesY[f]+armycoordinatesH[f]/2,20,20);
+        
+        fill(0, 0, 0);
+        
+        //Shows amount of soldiers in area
+        text(armyAmount[f],armycoordinatesX[f]+armycoordinatesW[f]/2,armycoordinatesY[f]+armycoordinatesH[f]/2);
+        
+        //Shades the one that was clicked
+        if (territoryName===armyName[f] && clicked===true) {
+            fill(0, 0, 0, 50);
+            rect(armycoordinatesX[f],armycoordinatesY[f],armycoordinatesW[f],armycoordinatesH[f]);
+        }
+        
+        //Shows names:
+        if (zoomvars[0]>=1.5) {
+            textSize(armyNameSize[f]);
+            text(armyName[f],armycoordinatesX[f]+armycoordinatesW[f]/2,armycoordinatesY[f]+armycoordinatesH[f]/6);
+        }
+    }
+    
+    //This shows the names of territories that are available to battle after choosing a Battler
+    for (var k = 0; k < possibleTargets.length;k++) {
+        for (var j = 0; j < possibleTargets[k].length; j++) {
+            if (territoryName===possibleTargets[k][k] && territoryName!=="") {
+            fill(0, 0, 0);
+            textSize(armyNameSize[j]);
+            text(possibleTargets[k][j],armycoordinatesX[j]+armycoordinatesW[j]/2,armycoordinatesY[j]+armycoordinatesH[j]/1.2);
+            }
+        }
+    }
+    
+    popMatrix();
+    
+    textFont(createFont("times new roman"));
+    
+    {
+    
+    if (armyColor[0]===armyColor[1] && armyColor[1]===armyColor[2] && armyColor[2]===armyColor[3] && armyColor[3]===armyColor[4] && armyColor[4]===armyColor[5] && armyColor[5]===armyColor[6] && armyColor[6]===armyColor[7] && armyColor[7]===armyColor[8]) {
+        territoryBonusText(50,230,60,armyColor[0], "North\nAmerica\n+ 5", 9);
+    } else {
+        territoryBonusText(50,230,60,color(255), "North\nAmerica\n+ 5", 9);
+    }
+    if (armyColor[9]===armyColor[10] && armyColor[10]===armyColor[11] && armyColor[11]===armyColor[12] && armyColor[12]===armyColor[13] && armyColor[13]===armyColor[14] && armyColor[14]===armyColor[15]) {
+        territoryBonusText(410,60,50,armyColor[9], "Europe\n+ 5", 7);
+    } else {
+        territoryBonusText(410,60,50,color(255), "Europe\n+ 5", 7);
+    }
+    if (armyColor[16]===armyColor[17] && armyColor[17]===armyColor[18] && armyColor[18]===armyColor[19] && armyColor[19]===armyColor[20] && armyColor[20]===armyColor[21] && armyColor[21]===armyColor[22] && armyColor[22]===armyColor[23] && armyColor[23]===armyColor[24] && armyColor[24]===armyColor[25] && armyColor[25]===armyColor[26] && armyColor[26]===armyColor[27]) {
+        territoryBonusText(640,37,45,armyColor[16], "Asia\n+ 7", 12);
+    } else {
+        territoryBonusText(640,37,45,color(255), "Asia\n+ 7", 12);
+    }
+    if (armyColor[28]===armyColor[29] && armyColor[29]===armyColor[30] && armyColor[30]===armyColor[31]) {
+        territoryBonusText(65,440,60,armyColor[28], "South\nAmerica\n+ 2", 4);
+    } else {
+        territoryBonusText(65,440,60,color(255), "South\nAmerica\n+ 2", 4);
+    }
+    if (armyColor[32]===armyColor[33] && armyColor[33]===armyColor[34] && armyColor[34]===armyColor[35] && armyColor[35]===armyColor[36] && armyColor[36]===armyColor[37]) {
+        territoryBonusText(310,430,50,armyColor[32], "Africa\n+ 3", 6);
+    } else {
+        territoryBonusText(310,430,50,color(255), "Africa\n+ 3", 6);
+    }
+    if (armyColor[38]===armyColor[39] && armyColor[39]===armyColor[40] && armyColor[40]===armyColor[41]) {
+        territoryBonusText(500,350,50,armyColor[38], "Australia\n+ 2", 4);
+    } else {
+        territoryBonusText(500,350,50,color(255), "Australia\n+ 2", 4);
+    }
+    
+    }//Territory Bonus Text
+    
+    controlPanel(possiblePlayers[currentPlayer]);
+    
+    //If currentDice and otherDice chosen
+    if (diceRandom===true) {
+        textSize(40);
+        fill(0, 0, 0, 155);
+        rect(0,0,600,500);//Shadow
+        noStroke();
+        fill(currentColor);
+        rect(200,200,100,100);//Attacker
+        fill(otherColor);
+        rect(300,200,100,100);//Defender
+        fill(0, 0, 0);
+        text(currentDice,250,260);//Attaker
+        text(otherDice,350,260);//Defender
+        textSize(30);
+        //Which is winner and loser
+        if (currentDice>otherDice) {
+            text("Winner",250,215);
+            text("Loser",350,215);
+        }
+        if (otherDice>=currentDice) {
+            text("Winner",350,215);
+            text("Loser",250,215);
+        }
+    }
+    
+    if (width!==700) {
+        throw {
+            message: "Please insert this in your address bar: ?width=775"
+        };
+    }//Message
+};
+
+
+        //If Battler lost, loses 1 soldier
+mouseReleased = function() {
+    //If Battler lost, loses 1 soldier
+    if (currentDice<=otherDice && diceRandom === true) {
+        for (var i = 0; i <=41; i++) {
+            if (currentColor===armyColor[i] && currentClick===armyAmount[i] && territoryName===armyName[i]) {
+                armyAmount[i]--;
+            }
+        }
+    }
+    
+    if (ispressingproceedbutton===true && currentStage<2) {
+        currentStage++;
+    } else if (ispressingproceedbutton===true && currentStage===2) {
+        currentStage=-1;
+        if (currentPlayer<5) {
+            currentPlayer++;
+        } else {
+            currentPlayer=0;
+        }
+    }
+};
+
+        //Zoomin stuff
+keyPressed = function() {
+    if (keyCode===187 && zoomvars[0]<2) {
+        zoomvars[0]+=0.25;
+    } else if (keyCode===189 && zoomvars[0]>1) {
+        zoomvars[0]-=0.25;
+    }
+};
+
+        //Chooses Battler and Opponent
+mouseClicked = function() {
+    if (currentStage===-1) {
+    draftAmount=0;
+    for (var v = 0; v < armyColor.length; v++) {
+        if (armyColor[v] === possiblePlayers[currentPlayer]) {
+            draftAmount++;
+        }
+    }
+        draftAmount=round((draftAmount-1)/3);
+        if (draftAmount<3) {
+            draftAmount=3;
+        }
+        if (territoryBonus[currentPlayer]===true) {
+            draftAmount+=territoryBonus[currentPlayer+6];
+        }
+    }
+    
+    if (currentStage===0) {
+    for (var s = 0; s < 42; s++) {
+        if (mouseX>armycoordinatesX[s]*zoomvars[0] && mouseY>armycoordinatesY[s]*zoomvars[0]  && mouseX<armycoordinatesX[s]*zoomvars[0] +armycoordinatesW[s]*zoomvars[0]  && mouseY<armycoordinatesY[s]*zoomvars[0] +armycoordinatesH[s]*zoomvars[0]) {
+            currentColor=armyColor[s];
+            if (armyColor[s]===possiblePlayers[currentPlayer] && draftAmount>0) {
+                draftAmount--;
+                armyAmount[s]++;
+            }
+            
+        }
+    }
+    }
+    
+    if (diceRandom===false && currentStage===1) {
+    //
+    for (var s = 0; s < 42; s++) {
+    if (mouseX>armycoordinatesX[s]*zoomvars[0] && mouseY>armycoordinatesY[s]*zoomvars[0]  && mouseX<armycoordinatesX[s]*zoomvars[0] +armycoordinatesW[s]*zoomvars[0]  && mouseY<armycoordinatesY[s]*zoomvars[0] +armycoordinatesH[s]*zoomvars[0]) {
+        if (clicked === false) {//BATTLER
+            if (armyAmount[s]>1 && possiblePlayers[currentPlayer]===armyColor[s]) {
+            currentDice = round(random(1,6));
+            currentClick = armyAmount[s];
+            currentColor = armyColor[s];
+            territoryName = armyName[s];
+            clicked = true;
+            println(territoryName+"\n");
+            }
+        } else {//IF OPPONENT NOT AVAILABLE
+            if (currentColor===armyColor[s]) {
+                clicked = false;
+                territoryName="";
+                otherTerritoryName="";
+            } else {//OPPONENT
+            otherTerritoryName = armyName[s];
+            for (var o = 0; o <possibleTargets[s].length;o++) {
+            if (possibleTargets[s][o]===territoryName) {
+            otherDice = round(random(1,6));
+            if (otherDice<currentDice && armyAmount[s]>0) {
+                armyAmount[s]--;
+            }
+            if (armyAmount[s]===0) {
+                armyColor[s] = currentColor;
+            }
+            otherColor = armyColor[s];
+            clicked = false;
+            diceRandom = true;
+            println(otherTerritoryName);
+            } else {
+                clicked = false;
+            }
+            }
+            }
+        }
+    }
+    }
+    }
+    else {
+        diceRandom=false;
+        territoryName="";
+        otherTerritoryName="";
+    }
+};
