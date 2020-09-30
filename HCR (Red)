@@ -1,0 +1,139 @@
+var p = {
+    t1: {
+        x:50,
+        y:100,
+        ys: 0,
+    },
+    t2: {
+        x:150,
+        y:100,
+        ys: 0,
+    },
+    xs: 0,
+};
+var t = {
+    h: [],
+    y: 300,
+    ys: random(-1,1),
+    cx: 0,
+    l: 4,
+    m: 0.01,
+};
+var keys = [];
+keyPressed = function(){
+    keys[keyCode] = true;
+};
+keyReleased = function(){
+    keys[keyCode] = !true;
+};
+draw = function() {
+    for(var i = 0;i < 30;i ++){
+        t.h.push(t.y);
+        t.y +=t.ys;
+        t.ys +=random(-t.m/2,t.m/2);
+        t.ys *=0.99;
+        if(t.y > 550){
+            t.ys -=t.m*1.2;
+        }
+        if(t.y < 150){
+            t.ys +=t.m*1.2;
+        }
+        if(t.m < 0.7){
+            t.m +=0.00005;
+        }    
+    }
+    background(255, 255, 255);
+    for(var i = 0;i < width/t.l;i ++){
+        noStroke();
+        fill(0, 0, 0);
+        rect(i*t.l,t.h[i*t.l+floor(t.cx)],t.l,height);
+    }
+    p.t1.y +=p.t1.ys/2;
+    p.t1.ys +=0.125;
+    if(get(p.t1.x,p.t1.y+25) === color(0)){
+        p.t1.ys = 0;
+        while(get(p.t1.x,p.t1.y+25) === color(0)){
+            p.t1.y --;
+        }
+    }
+    p.t2.y +=p.t2.ys/2;
+    p.t2.ys +=0.125;
+    if(get(p.t2.x,p.t2.y+25) === color(0)){
+        p.t2.ys = 0;
+        while(get(p.t2.x,p.t2.y+25) === color(0)){
+            p.t2.y --;
+        }
+    }
+    background(99, 177, 219);
+    for(var i = 0;i < width/t.l;i ++){
+        noStroke();
+        fill(163, 91, 36);
+        rect(i*t.l,t.h[i*t.l+floor(t.cx)],t.l,height);
+        fill(39, 161, 47);
+        rect(i*t.l,t.h[i*t.l+floor(t.cx)],t.l,30);
+        fill(63, 204, 70);
+        rect(i*t.l,t.h[i*t.l+floor(t.cx)]+5,t.l,20);
+    }//Ground
+    {
+    pushMatrix();
+    translate(100,-20+(p.t1.y+p.t2.y)/2);
+    rotate(-180+atan2((p.t1.y-p.t2.y), (p.t1.x-p.t2.x)));
+    stroke(0, 0, 0);
+    strokeWeight(12);
+    line(50,0,20,-55);//Wind sheild outline
+    stroke(200, 0, 0);
+    strokeWeight(10);
+    line(50,0,20,-55);//Wind Sheild
+    stroke(0, 0, 0);
+    strokeWeight(10);
+    line(-20,-50,0,0);//Seat
+    strokeWeight(5);
+    noFill();
+    arc(-80,-30,74,140,286,360);//Antanne
+    line(-65,-50,-65,0);
+    line(-35,-50,-35,0);
+    noStroke();
+    fill(200, 0, 0);
+    rect(-80,-40,160,50,10);//Car
+    rect(-20,-30,40,50);//Car
+    stroke(0, 0, 0);
+    fill(99, 177, 219);
+    arc(50,20,55,50,180,360);//Wheel space
+    arc(-50,20,55,50,180,360);//Wheel space
+    stroke(0, 0, 0);
+    line(18,20,-18,20);//Foot place
+    strokeWeight(2);
+    line(-15,20,-15,-38);//Door outline (left)
+    line(25,-5,25,-38);//Door outline (right)
+    noFill();
+    arc(50,20,75,70,180,229);//Door outline (right) around wheel
+    strokeWeight(5);
+    line(-8,-30,-2,-30);//Door handle
+    line(-70,-50,-30,-50);
+    fill(0, 0, 0);
+    line(77,10,82,10);//bumper
+    rect(80,-30,0,40);//bumper
+    ellipse(83,-20,5,5);//bumper
+    popMatrix();
+    }//Car
+    fill(179, 179, 179);
+    stroke(117, 117, 117);
+    strokeWeight(7);
+    ellipse(p.t1.x,p.t1.y+5,35,35);//wheel
+    ellipse(p.t2.x,p.t2.y+5,35,35);//wheel
+    if(t.h.length > 500){
+        t.cx +=p.xs;
+    }
+    if(keys[RIGHT]){
+        p.xs ++;
+    }
+    if(keys[LEFT]){
+        p.xs -=0.5;
+    }
+    if(t.cx < 0){
+        t.cx = 0;
+    }
+    p.xs *=0.87;
+};
+
+
