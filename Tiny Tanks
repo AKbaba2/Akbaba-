@@ -1,0 +1,1428 @@
+var code = [];
+/**     @Todo
+Fix ammo glitch
+Add AI
+Add how scene
+Add power ups
+Add second player
+Other stuff that I can't remember right now.
+
+@Notes:
+3/18 - Started project
+3/25 - Completed basic game functions
+3/31 - Finished tank shop
+4/11 - Created menu
+4/18 - Made single player menu
+4/20 - Made lobby
+4/27 - Finally finished wall collisions
+4/29 - Finished open-world map function
+5/10 - Fixed open-world map function and collisions
+
+@Credits
+Little Moose - tank rotation, bullet movement, wall collision
+Kevin23 - wall collision
+Peter Collingridge - text function
+
+^Please note that while I might have taken some code from these peoples' programs, I did not simple copy-paste. I had to modify, sometimes to a great extent, the code to make it work as I need it to.
+**/
+
+var login = false;//Login
+var loginPage = "Hi";//Login page
+var name = "";//Username
+var lowercaseLetters="abcdefghijklmnopqrstuvwxyz";//Typing
+var uppercaseLetters="ABCDEFGHIJKLMNOPQRSTUVWXYZ";//Typing
+var numbers = "0123456789";//Typing var
+var shiftPressed = false;//Typing var
+var pressed = false;//Pressed
+var keys = [];//Keypressed
+var curTeam = 0;//Current team
+var tankParts = [
+    "Chassis", "Turret", "Barrel", "Power Up"
+];//Tank parts
+var curTankPart = [
+    [
+        ["Standard", "Sherman", "Viper", "Humma"],
+        ["33% extra grip", "20% lighter", "40% lighter", "33% more health"],
+        ["", "50% less grip", "20% less health", "34% heavier"],
+        [0, 25, 40, 55],
+        [true, false, false, false]
+    ],//Chassis
+    [
+        ["Standard", "Extended", "Autoloader", "Big Bertha"],
+        ["", "20% more ammo", "25% faster reload", "20% further range"],
+        ["", "25% longer reload", "25% shorter range", "100% larger recoil"],
+        [0, 30, 45, 45],
+        [true, false, false, false]
+    ],//Turret
+    [
+        ["Safety", "Accelerator", "Nanotube", "Classic"],
+        ["No self damage", "25% faster bullets", "30% faster fire rate", ""],
+        ["20% less ammo", "25% slower fire rate", "5% slower bullets", ""],
+        [0, 40, 50, 10],
+        [true, false, false, false]
+    ],//Barrel
+    [
+        ["None", "Heal", "Sheild", "Speed"],
+        ["", "\nHeals 10% of\nfull tank health", "\nImmune to damage\nfor 3 seconds", "\n2x movement speed\nfor 4 seconds"],
+        [],
+        [0, 60, 60, 60],
+        [true, false, false, false]
+    ],//Power up
+];//Shop parts
+var curParts = [
+    curTankPart[0][0][0],//Chassis
+    curTankPart[1][0][0],//Turret
+    curTankPart[2][0][0],//Barrel
+    curTankPart[3][0][0],//Power up
+];//Current tank parts
+var curShop = 0;//Current shop page
+var scene = "Menu";//Change the m to M :P
+var coins = 200;
+var ammo = 4;//Ammo
+var reload = 0;//Ammo reload
+var maxAmmo = 4;//Max ammo
+var reloadTime = 100;//Reload time
+var bullRange = 250;//Bullet range
+var bullSpeed = 5;//Bullet speed
+var recoiled = false;//this.recoil
+var fireRate = 1;//Fire rate
+var health = 15;//Health
+var rotathing = 0;
+var transitionY = 750;//Transitioning var
+var transitioning = false;//Transitioning var
+var toPage = "";//Transitioning var
+var txtNum = 0;
+var playerNum = 1;
+var singlePlayerButtons = [
+    "Learn the basics of Tiny Tanks and familiarise yourself with the controls. When you're ready take on the Time Trial - destroy as many stationary tanks as you can before the time runs out.",
+    "Now you're ready for your first match! This is a 1v1 with a low intelligence CPU player. He will only shoot when he can hit you directly, so stay out of his range and keep shooting!",
+    "A 2v2 on an open map. Your shots will not damage your teammate but they will still damage your own tank. Support your teammate if he gets in trouble!",
+    "Another 1v1, this time against a slightly better AI. Try moving backwards to stay out of your opponents range while firing so that he moves forward into your shots.",
+    "Another 2v2. This level is good for surrounding an opponent with your teammate, which will take him out very effectively.",
+    "A 3 player free for all! Avoiding combat to allow your opponents to damage each other before moving in to finish them off is an underhand but effective tactic.",
+    "Another 1v1. Keep moving backwards and firing!",
+    "A 2v2 on a small map. Hold your side of the map and push through to surround your opponents.",
+    "Another 1v1 with a skilled AI. Be careful for getting hit by long shots, and run away to reposition yourself if you're getting hit!",
+    "A four player free for all! Pay attention to your position relative to your opponents and avoid getting caught in their crossfire at all costs!",
+    "A 1v1 against the hardest CPU. This is also a challenging map, try and move forward so that you are within range, fire your shots, then retreat immediately.",
+    "The final challenge, this time its 1v2 against some hard CPU players. Your position is very important, do not allow yourself to be surrounded. This is a very hard challenge, ood luck!"
+];//Single player explanation
+var teamPlay = false;//Options
+var mouseAiming = false;//Options
+var bulletBounce = true;//Options
+var tankPowerUps = true;//Options
+var curMode = 0;//Current game mode
+var modes = [
+    "Last tank alive", "Deathmatch", "Capture the flag"
+];//Game modes
+var maps = [
+    [width,height+150],//Map one size
+    [width,height+150],//Map two size
+    [width,height+150],//Map three size
+];//Map sizes
+var curMap = 0;//Current map
+
+var Tank = function(r,s,aim) {
+    this.x = maps[curMap][0]/2;//x position
+    this.y = maps[curMap][1]/2;//y position
+    this.w = 40;//Width
+    this.h = 40;//Height
+    this.collide = false;//Collide
+    this.speed = 0;//Tank speed
+    this.health = 15;//Tank health
+    this.maxSpeed  = 2;//Max tank speed
+    this.rotation = 0;//Tank rotation
+    this.rotationSpeed = 2;//Max tank rotation speed
+    this.aim = aim;
+    this.grip = 1.1;//Tank grip
+    this.recoil = 1;//this.recoil
+    this.size = 1;//Size of tank
+    this.team = [
+        [color(0,185,0), color(0,135,0), color(0,85,0)],
+        [color(50,110,255), color(0,60,205), color(0,10,155)],
+        [color(185,0,0), color(135,0,0), color(85,0,0)],
+        [color(185,185,0), color(135,135,0), color(85,85,0)],
+    ];//Tank team color
+    this.chassis = curParts[0];//Tank chassis
+    this.turret = curParts[1];//Tank turret
+    this.barrel = curParts[2];//Tank barrel
+    this.r = r;
+    this.s = s;
+};
+Tank.prototype.draw = function() {
+    pushMatrix();
+    pushStyle();
+    rectMode(CENTER);
+    translate(this.x,this.y);
+    rotate(this.r);
+    scale(this.s);
+    rotate(this.rotation);
+    scale(this.size);
+    strokeWeight(1);
+    stroke(0, 0, 0);
+this.chassis = curParts[0];
+this.turret = curParts[1];
+this.barrel = curParts[2];
+        //Start chassis
+    if (this.chassis === "Standard") {
+        this.grip = 1.5;
+        this.maxSpeed = 2;
+        this.health = 15;
+        fill(this.team[curTeam][0]);
+        rect(0,0,26,34);//Chassis
+        fill(this.team[curTeam][1]);
+        noStroke();
+        rect(0,0,15,24);//Dark chassis
+        fill(this.team[curTeam][2]);
+        rect(-3,9,5,3,20);//Darker chassis
+        rect(3,9,5,3,20);//Darker chassis
+    } else if (this.chassis === "Sherman") {
+        this.grip = 1.05;
+        this.maxSpeed = 2.2;
+        this.health = 15;
+        fill(this.team[curTeam][0]);
+        rect(0,0,26,34);//Chassis
+        fill(this.team[curTeam][2]);
+        noStroke();
+        rect(0,-13,26,7);//Darker chassis
+        fill(this.team[curTeam][1]);
+        for (var i = 9; i <= 15; i += 2) {
+            rect(-4,i,5,1);//Dark chassis
+            rect(4,i,5,1);//Dark chassis
+        }
+    } else if (this.chassis === "Viper") {
+        this.grip = 1.1;
+        this.maxSpeed = 2.4;
+        this.health = 12;
+        fill(this.team[curTeam][0]);
+        rect(0,0,26,34);//Chassis
+        fill(this.team[curTeam][2]);
+        noStroke();
+        rect(0,0,17,24);//Darker chassis
+        fill(this.team[curTeam][1]);
+        rect(0,0,13,20);//Dark chassis
+    } else if (this.chassis === "Humma") {
+        this.grip = 1.1;
+        this.maxSpeed = 1.3;
+        this.health = 20;
+        fill(this.team[curTeam][0]);
+        rect(0,0,26,34);//Chassis
+        fill(this.team[curTeam][2]);
+        noStroke();
+        rect(0,0,19,28);//Darker chassis
+        fill(this.team[curTeam][0]);
+        rect(0,2,15,20);//chassis
+        stroke(this.team[curTeam][2]);
+        line(-5,9,5,9);
+    }
+        //End chassis
+
+        //Start barrel
+    pushMatrix();
+    if (this.aim) {
+        rotate(atan2(mouseY-this.y, mouseX-this.x)+90);
+    }
+    stroke(0, 0, 0);
+    fill(this.team[curTeam][0]);
+    if (this.barrel === "Safety") {
+        maxAmmo = 4;
+        bullSpeed = 5;
+        fireRate = 1;
+        rect(-1,-15,3,24);//Barrel
+    } else if (this.barrel === "Accelerator") {
+        maxAmmo = 5;
+        bullSpeed = 6.25;
+        fireRate = 1.25;
+        rect(-1,-15,3,24);//Barrel
+    } else if (this.barrel === "Nanotube") {
+        maxAmmo = 5;
+        bullSpeed = 4.5;
+        fireRate = 1.3;
+        rect(-1,-15,1,24);//Barrel
+    } else if (this.barrel === "Classic") {
+        maxAmmo = 5;
+        bullSpeed = 5;
+        fireRate = 1;
+        rect(0,-15,4,24);//Barrel
+    }
+    pushMatrix();
+    if (keys[32] && ammo>0) {
+        translate(0,2);
+    }
+    if (this.barrel === "Safety") {
+        rect(-1,-28,7,2);//Barrel top
+    } else if (this.barrel === "Accelerator") {
+        rect(-1,-27,5,4);//Barrel top
+    } else if (this.barrel === "Classic") {
+        rect(0,-27,6,4);//Barrel top
+    }
+    popMatrix();
+    popMatrix();
+        //End barrel
+
+        //Start turret
+    if (this.turret === "Standard") {
+        maxAmmo = 5;
+        reloadTime = 100;
+        bullRange = 250;
+        this.recoil = 5;
+        fill(this.team[curTeam][0]);
+        ellipse(0,0,11,11);//Turret
+    } else if (this.turret === "Extended") {
+        maxAmmo = 6;
+        reloadTime = 125;
+        bullRange = 250;
+        this.recoil = 5;
+        fill(this.team[curTeam][0]);
+        rect(0,0,10,10,2);
+    } else if (this.turret === "Autoloader") {
+        maxAmmo = 5;
+        reloadTime = 75;
+        bullRange = 190;
+        this.recoil = 5;
+        fill(this.team[curTeam][0]);
+        rect(0,0,10,7,2);
+    } else if (this.turret === "Big Bertha") {
+        maxAmmo = 5;
+        reloadTime = 100;
+        bullRange = 300;
+        this.recoil = 10;
+        fill(this.team[curTeam][0]);
+        quad(5,4,-5,4,-3,-5,3,-5);
+    }
+        //End turret
+    
+        //Start wheel
+    fill(107, 99, 99);
+    rect(14,-2,6,45);//Right wheel
+    rect(-15,-2,6,45);//Left wheel
+    for (var i = -20; i <= 20; i += 4)  {
+        line(12,i,17,i);//Right wheel tracks
+        line(-12,i,-17,i);//Left wheel tracks
+    }
+        //End wheel
+    popStyle();
+    popMatrix();
+};
+Tank.prototype.move = function() {
+    if(keys[UP]){
+        this.speed--;//Move forward
+    }
+    if(keys[DOWN]){
+        this.speed++;//Move backward
+    }
+    if (keys[RIGHT]) {
+        this.rotation += this.rotationSpeed;//Turn right
+    }
+    if (keys[LEFT]) {
+        this.rotation -= this.rotationSpeed;//Turn left
+    }
+      
+    if (this.rotation < 0) {
+        this.rotation = 360;
+    }
+    if (this.rotation > 360) {
+        this.rotation = 0;
+    }
+    
+    this.x -= this.speed * sin(this.rotation);
+    this.y += this.speed * cos(this.rotation);
+    
+this.speed= constrain(this.speed, -this.maxSpeed, this.maxSpeed);
+    
+    if (!(keys[UP] || keys[DOWN])) {
+        this.speed /= this.grip;//Slow down when not moving
+    }
+    
+    if (recoiled) {
+        this.speed = this.speed + this.recoil;
+    }
+};
+var tank = new Tank(0,1);
+var transitionTank = new Tank(0, 18);
+
+var Fire = function(x,y,xs,ys) {
+    this.x = tank.x;
+    this.y = tank.y;
+    this.life = 200;
+    this.xSpd = xs;
+    this.ySpd = ys;
+    this.lifeSpan = random(health+2, health);
+};
+Fire.prototype.draw = function() {
+    noStroke();
+    if (this.life > 0){
+        this.life -= this.lifeSpan;
+        this.x+=this.xSpd;
+        this.y+=this.ySpd;
+        fill(255-this.life/4, 50+this.life/2, 0);
+        ellipse(this.x,this.y,this.life/20,this.life/20);
+    }
+};
+var fire = [];
+
+var Bullet = function(x,y,r) {
+    this.x = x;//x position
+    this.y = y;//y position
+    this.r = r;//Rotation
+    this.range = bullRange;//Life time
+    this.speed = bullSpeed;//Speed
+    this.xVel = this.speed * sin(this.r-180);
+    this.yVel = this.speed * cos(this.r-180);
+    this.timer = 0;
+    this.bounced = false;
+};
+Bullet.prototype.draw = function() {
+    pushMatrix();
+    translate(this.x,this.y);
+    rotate(this.r);
+    fill(0, 0, 0);
+    ellipse(0,0,5,5);//Bullet
+    popMatrix();
+    
+    this.x -= this.xVel;
+    this.y += this.yVel;
+    
+    this.range --;
+    this.timer ++;
+};
+var bullet = [];
+
+var coords = {
+    x: 0, y: 0
+};
+
+var Wall = function(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+};
+Wall.prototype.draw = function() {
+    stroke(43, 43, 43);
+    fill(43, 43, 43);
+    rect(this.x, this.y, this.w, this.h);
+        //TANK COLLISION
+    // Collide top
+   if ((tank.x + tank.w / 2)-maps[curMap][0]/2 > this.x + 3 &&
+       (tank.x-tank.w/2)-maps[curMap][0]/2 < this.x+this.w-3 &&
+       (tank.y + tank.h / 2)-maps[curMap][1]/2 > this.y - 1 &&
+       (tank.y - tank.h / 2)-maps[curMap][1]/2 < this.y) {
+        
+        tank.y = this.y - tank.h / 2 + maps[curMap][1]/2;
+        tank.collide = true;
+    }
+    
+    // Collide bottom
+   if ((tank.x + tank.w / 2)-maps[curMap][0]/2 > this.x + 3 &&
+       (tank.x-tank.w/2)-maps[curMap][0]/2 < this.x+this.w-3 &&
+       (tank.y+tank.h/2)-maps[curMap][1]/2 > this.y+this.h &&
+       (tank.y-tank.h/2)-maps[curMap][1]/2 < this.y+this.h + 1) {
+
+        tank.y = this.y + this.h + tank.h / 2 +maps[curMap][1]/2;
+        tank.collide = true;
+    }
+    
+    // Collide right
+   if ((tank.x-tank.w/2)-maps[curMap][0]/2 < this.x+this.w+1 &&
+       (tank.x + tank.w / 2)-maps[curMap][0]/2>this.x + this.w &&
+       (tank.y + tank.h / 2)-maps[curMap][1]/2 > this.y + 3 &&
+       (tank.y-tank.h/2)-maps[curMap][1]/2 < this.y+this.h-3) {
+
+        tank.x = this.x + this.w + tank.w / 2 +maps[curMap][0]/2;
+        tank.collide = true;
+    }
+    
+    // Collide left
+    if ((tank.x + tank.w / 2)-maps[curMap][0]/2 > this.x - 1 &&
+        (tank.x - tank.w / 2)-maps[curMap][0]/2 < this.x &&
+        (tank.y + tank.h / 2)-maps[curMap][1]/2 > this.y + 3 &&
+        (tank.y-tank.h/2)-maps[curMap][1]/2 < this.y+this.h - 3){
+
+        tank.x = this.x - tank.w / 2 + maps[curMap][0]/2;
+        tank.collide = true;
+    }
+    
+    
+        //BULLET COLLISION
+    for (var i in bullet) {
+    //Collide top
+    if (bullet[i].x-maps[curMap][0]/2>this.x && 
+        bullet[i].x-maps[curMap][0]/2<this.x+this.w &&
+        bullet[i].y-maps[curMap][1]/2>this.y-5 && 
+        bullet[i].y-maps[curMap][1]/2<this.y) {
+        
+        bullet[i].yVel = -bullet[i].yVel;
+        bullet[i].bounced = true;
+    }
+    //Collide bottom
+    if (bullet[i].x-maps[curMap][0]/2>this.x && 
+        bullet[i].x-maps[curMap][0]/2<this.x+this.w &&
+        bullet[i].y-maps[curMap][1]/2>this.y+this.h && 
+        bullet[i].y-maps[curMap][1]/2<this.y+this.h+5) {
+            
+        bullet[i].yVel = -bullet[i].yVel;
+        bullet[i].bounced = true;
+    }
+    //Collide left
+    if (bullet[i].x-maps[curMap][0]/2>this.x-5 && 
+        bullet[i].x-maps[curMap][0]/2<this.x &&
+        bullet[i].y-maps[curMap][1]/2>this.y && 
+        bullet[i].y-maps[curMap][1]/2<this.y+this.h) {
+            
+        bullet[i].xVel = -bullet[i].xVel;
+        bullet[i].bounced = true;
+    }
+    //Collide right
+    if (bullet[i].x-maps[curMap][0]/2>this.x+this.w &&
+        bullet[i].x-maps[curMap][0]/2<this.x+this.w+5&&
+        bullet[i].y-maps[curMap][1]/2>this.y && 
+        bullet[i].y-maps[curMap][1]/2<this.y+this.h) {
+            
+        bullet[i].xVel = -bullet[i].xVel;
+        bullet[i].bounced = true;
+    }
+    }
+};
+
+var Maps = function() {
+    this.x = 0;
+    this.y = 0;
+    this.S = [0,0];
+};
+Maps.prototype.draw = function() {
+    stroke(0, 0, 0);
+for (var i=-maps[curMap][0]/2; i<=maps[curMap][0]/2; i+=maps[curMap][0]/8){
+        line(i,-maps[curMap][1]/2,i,maps[curMap][1]/2);
+    }
+for (var e=-maps[curMap][1]/2; e<=maps[curMap][1]/2; e+=maps[curMap][1]/8){
+        line(-maps[curMap][0]/2,e,maps[curMap][0]/2,e);
+    }
+    
+    tank.collide = false;
+    new Wall(-maps[curMap][0]/2, -maps[curMap][1]/2, maps[curMap][0], 10).draw();//Top
+    new Wall(-maps[curMap][0]/2, -maps[curMap][1]/2, 10, maps[curMap][1]).draw();//Left
+    new Wall(-maps[curMap][0]/2, maps[curMap][1]/2 - 10, maps[curMap][0], 10).draw();//Bottom
+    new Wall(maps[curMap][0]/2 - 10, -maps[curMap][1]/2, 10, maps[curMap][1]).draw();//Right
+    
+    if (curMap === 0) {
+        new Wall(-170,-280,340,50).draw();
+        new Wall(-210,-160,420,50).draw();
+        
+        new Wall(30,200,200,50).draw();
+        new Wall(105,0,50,200).draw();
+        
+        new Wall(-230,0,200,50).draw();
+        new Wall(-155,50,50,200).draw();
+    } else if (curMap === 1) {
+        new Wall(-100,-300,200,20).draw();
+        
+        new Wall(-315,-185,75,75).draw();
+        new Wall(-37,-185,75,75).draw();
+        new Wall(240,-185,75,75).draw();
+        
+        new Wall(-200,-20,150,40).draw();
+        new Wall(50,-20,150,40).draw();
+        
+        new Wall(-315,110,75,75).draw();
+        new Wall(-37,110,75,75).draw();
+        new Wall(240,110,75,75).draw();
+        
+        new Wall(-100,280,200,20).draw();
+    } else if (curMap === 2) {
+        new Wall(-25,-25,50,50).draw();
+        
+        new Wall(-200,-230,20,150).draw();
+        new Wall(-100,-230,20,150).draw();
+        
+        new Wall(180,-230,20,150).draw();
+        new Wall(80,-230,20,150).draw();
+        
+        new Wall(-200,80,20,150).draw();
+        new Wall(-100,80,20,150).draw();
+        
+        new Wall(180,80,20,150).draw();
+        new Wall(80,80,20,150).draw();
+    }
+};
+var theMap = new Maps();
+
+var paper = function(x,y,w,h) {
+    fill(234, 238, 230);
+    stroke(0, 0, 0);
+    rect(x,y,w,h);
+    stroke(255, 100, 100);
+    line(x+1,y+30,x+w-1,y+30);
+    stroke(200, 200, 200);
+    if (h>50) {
+        for (var i = y+50; i < y+h; i += 20) {
+            line(x+1,i,x+w-1,i);
+        }
+    }
+    stroke(0, 0, 0);
+};
+
+var transition = function(sceneTo) {
+    if (transitioning) {
+        pushMatrix();
+        translate(0,transitionY-75);
+        transitionTank.draw();
+        popMatrix();
+        transitionY-=10;
+        if (transitionY === 0) {
+            scene = sceneTo;
+        }
+        if (transitionY < -760) {
+            transitioning = false;
+            transitionY = 750;
+        }
+    }
+};
+
+var menu = function() {
+    background(154, 88, 7);
+    textFont(createFont("Segoe Print Bold"));
+    
+    pushMatrix();
+    translate(width/2-100,height/2-120);//170,140
+    rotate(10);
+    paper(-10,0,460,400);
+    
+    rotate(-5);
+    fill(255, 255, 255);
+    
+        //Multiplayer button
+    pushMatrix();
+    translate(295,120);
+    stroke(0, 0, 0);
+if (mouseX>410 && mouseX<605 && mouseY>265 && mouseY<360) {
+    scale(1.1,1);
+    if (pressed && !transitioning && login) {
+        toPage = "multiplayer";
+        transitioning = true;
+    }
+}
+    rect(-95,-40,190,80);
+    for (var i = -80; i < 95; i += 15) {
+        for (var e = -25; e < 40; e += 15) {
+            stroke(227, 227, 227);
+            line(i,-38,i,39);
+            line(-93,e,94,e);
+        }
+    }
+    popMatrix();
+    
+        //Single player button
+    pushMatrix();
+    translate(305,230);
+    stroke(0, 0, 0);
+if (mouseX>430 && mouseX<585 && mouseY>385 && mouseY<455) {
+    scale(1.1,1);
+    if (pressed && login) {
+        toPage = "singleplayer";
+    }
+}
+    rect(-75,-30,150,60);
+    for (var i = -60; i < 75; i += 15) {
+        for (var e = -15; e < 30; e += 15) {
+            stroke(227, 227, 227);
+            line(i,-28,i,29);
+            line(-73,e,74,e);
+        }
+    }
+    popMatrix();
+    
+        //Tank shop button
+    pushMatrix();
+    translate(105,290);
+    stroke(0, 0, 0);
+if (mouseX>230 && mouseX<385 && mouseY>430 && mouseY<500) {
+    scale(1.1,1);
+    if (pressed && !transitioning && login) {
+        toPage = "tankshop";
+        transitioning = true;
+    }
+}
+    rect(-75,-30,150,60);
+    for (var i = -60; i < 75; i += 15) {
+        for (var e = -15; e < 30; e += 15) {
+            stroke(227, 227, 227);
+            line(i,-28,i,29);
+            line(-73,e,74,e);
+        }
+    }
+    popMatrix();
+    
+        //How to play button
+    pushMatrix();
+    translate(100,190);
+    stroke(0, 0, 0);
+if (mouseX>230 && mouseX<385 && mouseY>330 && mouseY<400) {
+    scale(1.1,1);
+    if (pressed && !transitioning && login) {
+        toPage = "";
+        //transitioning = true;
+    }
+}
+    rect(-75,-30,150,60);
+    for (var i = -60; i < 75; i += 15) {
+        for (var e = -15; e < 30; e += 15) {
+            stroke(227, 227, 227);
+            line(i,-28,i,29);
+            line(-73,e,74,e);
+        }
+    }
+    popMatrix();
+    
+        //Button names
+    stroke(0, 0, 0);
+    fill(0, 0, 0);
+    textSize(30);
+    text("Multiplayer",295,120);
+    textSize(20);
+    text("tank shop",105,290);
+    text("singleplayer",305,230);
+    text("how to play",100,190);
+    popMatrix();
+    
+        //Subscribe button
+    pushMatrix();
+    translate(80,height-100);
+if (mouseX>20 && mouseX<140 && mouseY>height-145 && mouseY<height-55) {
+    scale(1.1,1);
+    if (pressed) {
+        println("Subscribe!\nhttps://www.khanacademy.org/computer-programming/akaba-sub-page/5778863486599168");
+    }
+}
+    paper(-60,-45,120,90);
+    popMatrix();
+    fill(0, 0, 0);
+    textFont(createFont("Segoe Print"));
+    text("Made by:",80,height-125);
+    text("AKßaba©",80,490);
+    
+        //Log in
+    textFont(createFont("Segoe Print Bold"));
+    textAlign(LEFT,CENTER);
+    fill(244, 226, 113);
+    rect(width-250,0,250,200);
+    fill(255, 233, 128);
+    noStroke();
+    rect(width-249,70,250,40);
+    rect(width-249,130,250,40);
+    fill(49, 52, 52);
+    textSize(25);
+    text("Logged in as:",width-240,30);
+    textSize(20);
+    text(name,width-235,90);
+    text(coins,width-210,150);
+    fill(255, 230, 0);
+    stroke(0, 0, 0);
+    ellipse(width-230,150,20,20);
+    fill(0, 0, 0);
+    textSize(15);
+    text("$",width-234,149);
+    
+        //Title
+    textAlign(CENTER,CENTER);
+    pushMatrix();
+    translate(-10,0);
+    rotate(-5);
+    paper(0,0,350,250);
+    fill(165, 198, 174, 150);
+    rect(10,10,330,230);
+    fill(49, 52, 52);
+    textSize(85);
+    text("tiny\nTANKS",175,115);
+    translate(-27,-271);
+    curTeam = 1;
+    new Tank(-63,1.45).draw();
+    translate(-245,-23);
+    curTeam = 0;
+    new Tank(152,1.5).draw();
+    popMatrix();
+    
+        //Login
+    if (!login) {
+        fill(255, 255, 255);
+        rect(width/2-125,height/2-110,250,220);
+        if (loginPage === "Hi") {
+            name = "";
+            fill(0, 0, 0);
+            textSize(18);
+            text("Welcome to Tiny Tanks!",width/2,height/2-75);
+            fill(255, 0, 0, 100);
+            pushMatrix();
+            translate(width/2+60,height/2+65);
+            if (mouseX>width/2+25 && mouseX<width/2+95 && mouseY>height/2+50 && mouseY<height/2+80) {
+                scale(1.1,1);
+                if (pressed) {
+                    loginPage = "No";
+                }
+            }
+            rect(-35,-15,70,30);
+            popMatrix();
+            fill(0, 255, 0, 100);
+            pushMatrix();
+            translate(width/2-65,height/2+65);
+            if (mouseX>width/2-100 && mouseX<width/2-30 && mouseY>height/2+50 && mouseY<height/2+80) {
+                scale(1.1,1);
+                if (pressed) {
+                    loginPage = "Yes";
+                }
+            }
+            rect(-35,-15,70,30);
+            popMatrix();
+            fill(0, 0, 0);
+            text("No",width/2+60,height/2+65);
+            text("Yes",width/2-65,height/2+65);
+            
+            fill(0, 0, 0);
+            textFont(createFont("Segoe Print"));
+            textSize(15);
+            text("Have you played before?",width/2,height/2-10);
+        }
+        if (loginPage === "No") {
+            fill(0, 0, 0);
+            textSize(20);
+            text("Enter your name",width/2,height/2-70);
+            stroke(0, 100, 255);
+            fill(255, 255, 255);
+            rect(width/2-100,height/2-30,200,30);
+            stroke(0, 0, 0);
+            fill(0, 0, 0);
+            text(name,width/2,height/2-15);
+            
+            pushMatrix();
+            stroke(0, 0, 0);
+            fill(0, 255, 0, 100);
+            translate(width/2,height/2+40);
+            if (mouseX>width/2-40 && mouseX<width/2+40 && mouseY>height/2+25 && mouseY<height/2+55) {
+                scale(1.1,1);
+                if (pressed && name.length>2) {
+                    login = true;
+                }
+            }
+            rect(-40,-15,80,30);
+            popMatrix();
+            fill(0, 0, 0);
+            text("Ok",width/2,height/2+40);
+            
+            translate(width/2-90,height/2+90);
+            stroke(0, 0, 0);
+            fill(255, 0, 0, 100);
+            if (mouseX>width/2-115 && mouseX<width/2-65 && mouseY>height/2+80 && mouseY<height/2+100) {
+                scale(1.1,1);
+                if (pressed) {
+                    loginPage = "Hi";
+                }
+            }
+            rect(-25,-10,50,20);
+            popMatrix();
+            
+            fill(0, 0, 0);
+            textSize(15);
+            text("Back",width/2-90,height/2+90);
+        }
+        if (loginPage === "Yes") {
+            pushMatrix();
+            fill(0, 0, 0);
+            textSize(17);
+            text("Please enter your code\nin the variable labeled\ncode on line 1.",width/2,height/2-15);
+            
+            translate(width/2-90,height/2+90);
+            stroke(0, 0, 0);
+            fill(255, 0, 0, 100);
+            if (mouseX>width/2-115 && mouseX<width/2-65 && mouseY>height/2+80 && mouseY<height/2+100) {
+                scale(1.1,1);
+                if (pressed) {
+                    loginPage = "Hi";
+                }
+            }
+            rect(-25,-10,50,20);
+            popMatrix();
+            
+            fill(0, 0, 0);
+            textSize(15);
+            text("Back",width/2-90,height/2+90);
+        }
+    }
+    
+        //Single player
+    if (toPage === "singleplayer") {
+        paper(75,20,width-150,height-40);
+        fill(0, 0, 0);
+        textSize(35);
+        text("Campaign Mode",230,65);
+        for (var i = 0; i < singlePlayerButtons.length/2; i ++) {
+            textAlign(CENTER,CENTER);
+            textSize(27);
+            fill(240, 161, 29);
+            rect(i*80+95,110,60,60);
+            rect(i*80+95,180,60,60);
+            fill(0, 0, 0);
+            text(i+1,i*80+125,140);
+            text(i+7,i*80+125,210);
+            if (pressed && mouseX>i*80+95 && mouseX<i*80+155 && mouseY>110 && mouseY<170) {
+                txtNum = i;
+            }
+            if (pressed && mouseX>i*80+95 && mouseX<i*80+155 && mouseY>180 && mouseY<240) {
+                txtNum = i+6;
+            }
+        }
+        textAlign(LEFT,TOP);
+        text("Mission "+(txtNum+1),100,height/2-30);
+        if (txtNum===0) {
+            text("- Tutorial",235,height/2-30);
+        }
+        textSize(15);
+        textFont(createFont("Segoe Print"));
+        text(singlePlayerButtons[txtNum],90,height/2+20,240,500);
+        
+        textAlign(CENTER,CENTER);
+        fill(255, 0, 0, 100);
+        noStroke();
+        pushMatrix();
+            translate(width-115,37);
+            if (mouseX>width-140 && mouseX<width-90 && mouseY>25 && mouseY<50) {
+                scale(1.1,1);
+                if (pressed) {
+                    toPage = "";
+                }
+            }
+            rect(-25,-12,50,24);
+        popMatrix();
+        fill(0, 0, 0);
+        textSize(18);
+        text("back",width-115,37);
+        fill(0, 255, 0, 100);
+        
+        pushMatrix();
+            translate(width/2,height-60);
+            if (mouseX>width/2-100 && mouseX<width/2+100 && mouseY>height-80 && mouseY<height-40) {
+                scale(1.1,1);
+                if (pressed) {
+                    transitioning = true;
+                }
+            }
+            rect(-100,-20,200,40);
+        popMatrix();
+        fill(0, 0, 0);
+        textSize(23);
+        text("Begin Game",width/2,height-60);
+        transition("Game");
+    }
+    
+    if (toPage === "multiplayer") {
+        transition("Lobby");
+    } else if (toPage === "tankshop") {
+        transition("Shop");
+    } else if (toPage === "menu" || toPage === "") {
+        transition("Menu");
+    }
+};
+
+var shop = function() {
+        background(154, 88, 7);
+        
+        pushMatrix();
+        translate(-15,90);
+        rotate(-15);
+        paper(0,0,450,510);
+        popMatrix();
+        
+            //Title
+        fill(210, 252, 85);
+        rect(5,5,180,60,2);
+        fill(85, 94, 59, 200);
+        textSize(30);
+        text("Tank Shop",95,35);
+        
+            //Loadout
+        paper(width-150,30,140,height-60);
+        fill(240, 161, 29);
+        rect(width-140,40,120,120);
+        pushMatrix();
+        translate(245,-260);
+        new Tank(rotathing,1).draw();
+        rotathing+=0.5;
+        popMatrix();
+        
+            //Buttons
+        for (var i = 0; i < tankParts.length; i += 1) {
+            fill(239, 251, 84);
+            rect(i*123+15,100,100,40);
+            fill(85, 94, 59, 200);
+            textSize(18);
+            text(tankParts[i],i*124+63,120);
+            if (pressed && mouseX>i*123+15 && mouseX<i*123+110 && mouseY>100 && mouseY<140) {
+                curShop = i;
+            }
+        }
+        
+            //Coins
+        fill(239, 251, 84);
+        rect(width/2-30,0,100,40);
+        fill(155, 155, 0);
+        text(coins+" coins",width/2+20,20);
+        
+            //Shop items
+        var xs = [20,180,340,20];
+        var ys = [180,180,180,340];
+        for (var i = 0; i < xs.length; i ++) {
+            textFont(createFont("Segoe Print Bold"));
+            fill(254, 248, 125);
+            rect(xs[i],ys[i],130,130);
+            fill(255, 0, 0);
+            if (curParts[curShop] === curTankPart[curShop][0][i]) {
+                fill(0, 200, 0);
+            }
+            ellipse(xs[i]+65,ys[i],15,15);
+            fill(0, 0, 0);
+            textSize(16);
+            text(curTankPart[curShop][0][i],xs[i]+65,ys[i]+20);
+            textFont(createFont("Segoe Print"));
+            textSize(12);
+            fill(66, 107, 23);
+            text(curTankPart[curShop][1][i],xs[i]+65,ys[i]+50);
+            fill(148, 62, 28);
+            text(curTankPart[curShop][2][i],xs[i]+65,ys[i]+75);
+            fill(0, 0, 0);
+            if (!curTankPart[curShop][4][i]) {
+                textSize(14);
+                text("$"+curTankPart[curShop][3][i],xs[i]+65,ys[i]+110);
+            }
+            if (pressed && mouseX>xs[i] && mouseX<xs[i]+130 && mouseY>ys[i] && mouseY<ys[i]+130 && coins>=curTankPart[curShop][3][i]) {
+                curParts[curShop] = curTankPart[curShop][0][i];
+                coins-=curTankPart[curShop][3][i];
+                curTankPart[curShop][3][i]=0;
+                curTankPart[curShop][4][i]=true;
+            }
+            
+                //Loadout stats
+            textSize(14);
+            fill(0, 0, 0);
+            text(tankParts[i]+":",width-80,i*60+252);
+            fill(66, 107, 23);
+            text("\n"+curParts[i],width-80,i*60+260);
+        }
+        fill(254, 248, 125);
+        rect(xs[1],ys[3],290,130);
+        fill(0, 0, 0);
+        text("Upgrade your tank in this tank shop\nwith money that you earn by playing!\nDestroy your enemies!",325,405);
+        fill(0, 200, 0);
+        ellipse(325,340,15,15);
+        
+            //Loadout stats
+        fill(0, 0, 0);
+        textSize(15);
+        text("Current loadouts\nstats",width-80,200);
+        
+            //Ok button
+        fill(255, 255, 255);
+        paper(width/2-100,height-50,200,50);
+        fill(204, 240, 173);
+        noStroke();
+        pushMatrix();
+        translate(width/2,height-20);
+        if (mouseX>width/2-25 && mouseX<width/2+25 && mouseY>height-35 && mouseY<height-5) {
+            scale(1.1,1);
+            if (pressed) {
+                health = tank.health;
+                transitioning = true;
+            }
+        }
+        rect(-25,-15,50,30);
+        popMatrix();
+        fill(0, 0, 0);
+        textSize(20);
+        text("OK",width/2,height-20);
+        if (toPage === "tankshop") {
+            transition("Menu");
+        } else if (toPage === "shop") {
+            transition("Lobby");
+        }
+};
+
+var lobby = function() {
+    background(154, 88, 7);
+    
+        //Lone sticky note
+    fill(93, 211, 240);
+    pushMatrix();
+    translate(width/2-100,height/2-50);
+    rotate(-15);
+    rect(0,0,200,200);
+    popMatrix();
+    
+        //Chat
+    paper(10,height/2,300,height/2);
+    stroke(140, 248, 253);
+    strokeWeight(5);
+    noFill();
+    rect(15,height-35,210,30,20);
+    fill(140, 248, 253);
+    rect(235,height-35,70,30,10);
+    fill(0, 0, 0);
+    textSize(20);
+    text("Send",270,height-20);
+    
+        //Players
+    strokeWeight(1);
+    stroke(0, 0, 0);
+    fill(244, 226, 113);
+    rect(5,80,280,190);
+    fill(255, 233, 128);
+    noStroke();
+    for (var i = 0; i < 4; i ++) {
+        rect(80,i*47+90,170,30);
+    }
+    pushMatrix();
+    translate(-290,-258);
+    for (var i = 0; i < playerNum; i ++) {
+        translate(0,i*47);
+        new Tank(90,0.9,false).draw();
+        translate(0,-i*47);
+if (pressed && mouseX>10 && mouseX<55 && mouseY>i*40+63 && mouseY<i*40+96) {
+            if (curTeam < 3) {
+                curTeam++;
+            } else {
+                curTeam = 0;
+            }
+        }
+    }
+    popMatrix();
+    for (var i = 0; i < playerNum; i ++) {
+        fill(0, 0, 0);
+        textSize(17);
+        text(name,165,i*47+105);
+    }
+    if (playerNum > 1) {
+        if (pressed && mouseX>254 && mouseX<270 && mouseY>playerNum*47+45 && mouseY<playerNum*47+75) {
+            playerNum--;
+        }
+        fill(255, 0, 0);
+        text("X",262,playerNum*47+60);
+    }
+    if (playerNum < 4) {
+        fill(0, 0, 0);
+        text("Add player",170,playerNum*47+105);
+        if (pressed && mouseX>80 && mouseX<250 && mouseY>playerNum*47+90 && mouseY<playerNum*47+120) {
+            playerNum++;
+        }
+    }
+    
+        //Title
+    stroke(0, 0, 0);
+    fill(210, 252, 85);
+    rect(30,5,190,60,2);
+    fill(85, 94, 59, 200);
+    textSize(27);
+    text("Match Lobby",125,35);
+    
+        //Options
+    pushMatrix();
+    translate(width/2,0);
+    rotate(-5);
+    paper(0,0,width/2,height-50);
+    textSize(25);
+    fill(0, 0, 0);
+    text("Settings",145,270);
+    textSize(15);
+    if (!teamPlay) {
+        fill(158, 158, 158);
+    }
+    text("Teamplay: "+teamPlay,145,310);
+    fill(0, 0, 0);
+    if (!mouseAiming) {
+        fill(158, 158, 158);
+    }
+    text("Mouse aiming: "+mouseAiming,145,340);
+    fill(0, 0, 0);
+    if (!bulletBounce) {
+        fill(158, 158, 158);
+    }
+    text("Bullet bounce: "+bulletBounce,145,370);
+    fill(0, 0, 0);
+    if (!tankPowerUps) {
+        fill(158, 158, 158);
+    }
+    text("Tank powerups: "+tankPowerUps,145,400);
+    fill(0, 0, 0);
+    text("Mode: "+modes[curMode],145,430);
+    popMatrix();
+    noFill();
+    if (pressed) {
+    if (mouseX>520 && mouseX<555 && mouseY>285 && mouseY<305) {
+        if (teamPlay) {
+            teamPlay = false;
+        } else {
+            teamPlay = true;
+        }
+    }
+    if (mouseX>535 && mouseX<570 && mouseY>315 && mouseY<325) {
+        if (mouseAiming) {
+            mouseAiming = false;
+        } else {
+            mouseAiming = true;
+        }
+    }
+    if (mouseX>540 && mouseX<575 && mouseY>345 && mouseY<365) {
+        if (bulletBounce) {
+            bulletBounce = false;
+        } else {
+            bulletBounce = true;
+        }
+    }
+    if (mouseX>550 && mouseX<585 && mouseY>375 && mouseY<395) {
+        if (tankPowerUps) {
+            tankPowerUps = false;
+        } else {
+            tankPowerUps = true;
+        }
+    }
+    if (mouseX>475 && mouseX<600 && mouseY>405 && mouseY<425) {
+        if (curMode<modes.length-1) {
+            curMode++;
+        } else {
+            curMode=0;
+        }
+    }
+    }
+    fill(220, 220, 220);
+    stroke(0, 0, 0);
+    noFill();
+    pushMatrix();
+    translate(width-250,60);
+    rotate(-3);
+    fill(234, 238, 230);
+    rect(0,0,160,160);
+    fill(240, 161, 29);
+    rect(22,10,115,115);
+    fill(0, 0, 0);
+    textSize(40);
+    text("<",20,140);
+    text(">",140,140);
+    textSize(18);
+    text("Arena "+(curMap+1),77,143);
+if (pressed) {
+    if (mouseX>415 && mouseX<440 && mouseY>190 && mouseY<215) {
+        if (curMap>0) {
+            curMap--;
+        } else {
+            curMap=maps.length-1;
+        }
+    } else if (mouseX>535 && mouseX<560 && mouseY>185 && mouseY<210) {
+        if (curMap<maps.length-1) {
+            curMap++;
+        } else {
+            curMap=0;
+        }
+    }
+}
+    popMatrix();
+    
+        //Quit
+    fill(255, 0, 0, 100);
+    noStroke();
+    pushMatrix();
+    translate(width-40,20);
+    if (mouseX>width-70 && mouseX<width-10 && mouseY>5 && mouseY<35) {
+        scale(1.1,1);
+        if (pressed) {
+            transitioning = true;
+            toPage = "menu";
+        }
+    }
+    rect(-30,-15,60,30);
+    popMatrix();
+    fill(0, 0, 0);
+    textSize(18);
+    text("Quit",width-40,20);
+    
+        //Shop
+    pushMatrix();
+    translate(width/2,50);
+    if (mouseX>width/2-60 && mouseX<width/2+60 && mouseY>5 && mouseY<95) {
+        scale(1.1,1);
+        if (pressed) {
+            transitioning = true;
+            toPage = "shop";
+        }
+    }
+    paper(-60,-45,120,90);
+    popMatrix();
+    fill(0, 0, 0);
+    textSize(30);
+    text("TANK\nshop",width/2,50);
+    
+        //Begin
+    fill(249, 230, 107);
+    rect(width/2+60,height-65,200,65);
+    fill(255, 0, 0, 100);
+    noStroke();
+    pushMatrix();
+    translate(width/2+160,height-30);
+if (mouseX>width/2+80 && mouseX<width/2+240 && mouseY>height-55 && mouseY<height-5) {
+        scale(1.1,1);
+        if (pressed) {
+            transitioning = true;
+            toPage = "game";
+        }
+    }
+    rect(-80,-25,160,50);
+    popMatrix();
+    fill(0, 0, 0);
+    textSize(25);
+    text("Begin Game",width/2+160,height-30);
+    
+    if (toPage === "game") {
+        transition("Game");
+    } else if (toPage === "shop") {
+        transition("Shop");
+    } else if (toPage === "menu") {
+        transition("Menu");
+    } else if (toPage === "multiplayer") {
+        transition("Lobby");
+    }
+};
+
+var game = function() {
+    background(240, 161, 29);
+    
+    coords.x = -tank.x+width/2;
+    coords.y = -tank.y+height/2;
+    
+    coords.x = constrain(coords.x, -maps[curMap][0]+width, 0);
+    coords.y = constrain(coords.y, -maps[curMap][1]+height, 0);
+    
+    pushMatrix();
+    translate(coords.x,coords.y);
+    
+    pushMatrix();
+    translate(maps[curMap][0]/2,maps[curMap][1]/2);
+    theMap.draw();
+    popMatrix();
+    
+    for(var i = bullet.length-1; i>-1; i--){
+        bullet[i].draw();
+        if (curParts[2]!=="Safety" && (bullet[i].x > tank.x-13 && bullet[i].x < tank.x+13 && bullet[i].y > tank.y-17 && bullet[i].y < tank.y+17 && bullet[i].timer > 5 && health > 0)) {
+            bullet.splice(i,1);
+            health --;
+        } else if (bullet[i].range <= 0) {
+            bullet.splice(i,1);
+        } else if (!bulletBounce && bullet[i].bounced) {
+            bullet.splice(i,1);
+        }
+    }
+    
+    tank.draw();
+    
+    popMatrix();
+    
+    if (health <= 5) {
+fire.push(new Fire(tank.x,tank.y,random(-1, 1), random(-1, 1)));
+        for (var i in fire) {
+            fire[i].draw();
+        }
+    }
+    if (health > 0) {
+        tank.move();
+    } else {
+        transitioning = true;
+    }
+    
+    if (ammo <= 0) {
+        reload ++;
+        if (reload >= reloadTime) {
+            ammo = maxAmmo;
+            reload = 0;
+        }
+    }
+    
+    recoiled = false;
+    pushMatrix();
+        translate(-5,height-60);
+        rotate(6);
+        stroke(0, 0, 0);
+        fill(255, 255, 255);
+        rect(0,0,200,60);
+        fill(0, 0, 0);
+        text(health,90,25);
+        text(ammo,180,25);
+        textFont(createFont("Segoe Print"));
+        textSize(15);
+        text("Health",40,25);
+        text("Ammo",140,25);
+    popMatrix();
+    transition("Menu");
+};
+
+draw = function() {
+    textAlign(CENTER,CENTER);
+    strokeWeight(1);
+    stroke(0, 0, 0);
+    fill(0, 0, 0);
+    textSize(25);
+    textFont(createFont("Segoe Print Bold"));
+    switch(scene) {
+        case "Menu":
+            menu();
+        break;
+        case "Shop":
+            shop();
+        break;
+        case "Lobby":
+            lobby();
+        break;
+        case "Game":
+            game();
+        break;
+    }
+    pressed = false;
+    
+    if (width!==650 || height!==575) {
+        throw {
+            message: "Please insert this in your address bar: ?width=650&height=575"
+        };
+        
+    }
+};
+
+mouseClicked = function() {
+    pressed = true;
+};
+keyPressed = function() {
+    keys[keyCode] = true;
+    if (loginPage === "No" && !login) {
+        if (name.length < 10) {
+            if (keyCode > 64 && keyCode < 91) {
+                if (shiftPressed){
+                    name += uppercaseLetters[keyCode-65];
+                } else {
+                    name += lowercaseLetters[keyCode-65];
+                }
+            } else if (keyCode > 47 && keyCode < 58) {
+                name += numbers[keyCode-48];
+            } else if (keyCode === 32) {
+                name += " ";
+            } else if (keyCode === 16){
+                shiftPressed = true;
+            }
+        }
+        if (keyCode === 8) {
+            name = name.slice(0, name.length-1);
+        }
+    }
+};
+keyReleased = function() {
+    if (keyCode === 16) {
+        shiftPressed = false;
+    }
+    keys[keyCode] = false;
+    if (keyCode===32 && ammo>0) {
+        ammo--;
+        bullet.push(new Bullet(tank.x, tank.y, tank.rotation));
+        recoiled = true;
+    }
+};
