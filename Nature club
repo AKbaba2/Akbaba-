@@ -1,0 +1,366 @@
+/***************** The first ever nature club! ******************\
+ * 
+ * Dedicated to teaching people how to care for nature.
+ * 
+ * 
+ * Do you meet the requirements and want to join?
+ * Just say so in the T&T!
+ * 
+ * Just 2 spots are available.
+ * 
+ * NOTE - This is not first come first serve.
+ * 
+ * 1. You need to be on KA for at least a year.
+ * 
+ * 2. You need to have completed 100% of intro to JS.
+ * (or be a good programmer, having a good program)
+ * 
+ * 3. You need to be able to go off-site to do some research.
+ * 
+ * Sorry for the strict requirements, but I need really good people.
+ * 
+ * Requirements to subscribe:
+ * 1. Be awesome!
+ * 2. Put a . in the Sub T&T.
+ * 
+**/
+
+/*
+11/8/18 - Started program
+11/20/18 - Finished major scenes
+11/28/18 - Completed earth day scene
+11/28/18 - Completed earth man
+11/30/18 - Announced it
+*/
+
+/**@CREDITS**/
+/**
+ * Chester Banks for circle buttons
+ * AKßaba© for helping out
+**/
+
+//Please note that this is a 100% informational club. No physical activity is required. This is only to inform you of what the problem is and how to help solve it. All research will be made. And all safety precautions will be noted.
+
+
+//fill(155, 118, 83);//dirt
+var continent = "menu";
+{
+var shovel = function(x,y) {
+    pushMatrix();
+    translate(x,y);
+    stroke(115, 78, 43);
+    strokeWeight(5);
+    line(0,0,0,-100);
+    fill(100, 101, 92);
+    noStroke();
+    rect(-30,0,60,30);
+    arc(0,30,60,60,0,180);
+    popMatrix();
+};
+var shovelX = -50;
+var shovelY = 200;//270
+var dirttaken = 300;
+var dirtdis = 300;
+var seed = -50;
+var groundmoveY=0;
+var groundmoveh=500;
+var groundwithseed = 300;
+var treestumpY = 425;//325
+var treestumpH = 0;//100
+var treegreenleft = 300;//200
+var treegreenright = 300;//400
+var treegreenup = 325;//30
+var treegrowth = function() {
+    fill(115, 78, 43);
+    rect(275,treestumpY,50,treestumpH);
+    fill(0, 155, 0);
+    triangle(treegreenleft,325,300,treegreenup,treegreenright,325);
+};
+}//logo vars
+var ocean = function() {
+    fill(255, 255, 0);
+    ellipse(250,300,100,100);
+    noStroke();
+    fill(0, 116, 205);
+    rect(0,300,500,200);
+    pushMatrix();
+    translate(250,300);
+    for (var i = 150; i > 50; i--) {
+        fill(255, 255, 0, 5);
+        quad(-50,0,50,0,i,200,-i,200);
+    }
+    popMatrix();
+};
+var circleButton =function(x, y, sz, txt, txtSize, whereTo){
+    noStroke();
+    if(dist(mouseX, mouseY, x, y) <= (sz/2)){
+        fill(245, 245, 245);
+        if (mouseIsPressed) {
+            continent = whereTo;
+        }
+    } else {
+        fill(245,245, 245, 200);
+    }
+    ellipse(x, y, sz, sz);
+    fill(41, 41, 41);
+    textSize(txtSize);
+    text(txt, x, y);
+};
+var textBackground = function(x,y,w,l,colors) {
+    noStroke();
+    if (mouseX>x && mouseX<x+w && mouseY>y && mouseY<y+l) {
+        fill(colors,200);
+    } else {
+        fill(colors,155);
+    }
+    rect(x,y,w,l);//225, 175, 150, 50
+    triangle(x,y,x,y+l,x-25,y+l/2);
+    triangle(x+w,y,x+w,y+l,x+w+25,y+l/2);
+};
+var PIC = [
+"animals/birds_rainbow-lorakeets",
+"animals/butterfly",
+"animals/butterfly_monarch",
+"animals/cat",
+"animals/cheetah",
+"animals/dog_sleeping-puppy",
+"animals/dogs_collies",
+"animals/fox",
+"animals/horse",
+"animals/kangaroos",
+"animals/komodo-dragon",
+"animals/penguins",
+"animals/rabbit",
+"animals/retriever",
+"animals/shark",
+"animals/snake_green-tree-boa",
+"animals/spider",
+"landscapes/beach-at-dusk",
+"landscapes/beach-in-hawaii",
+"landscapes/beach-sunset",
+"landscapes/beach-waves-at-sunset",
+"landscapes/beach-waves-daytime",
+"landscapes/beach-with-palm-trees",
+"landscapes/beach",
+"landscapes/clouds-from-plane",
+"landscapes/crop-circle",
+"landscapes/fields-of-grain",
+"landscapes/fields-of-wine",
+"landscapes/lake",
+"landscapes/lava",
+"landscapes/lotus-garden",
+"landscapes/mountain_matterhorn",
+"landscapes/mountains-and-lake",
+"landscapes/mountains-in-hawaii",
+"landscapes/mountains-sunset",
+"landscapes/sand-dunes",
+"landscapes/waterfall_niagara-falls",
+];
+var img = getImage(PIC[ floor( random(17 ,PIC.length))]);
+var img2 = getImage(PIC[ floor( random(0, 16))]);
+var img3 = getImage(PIC[ floor( random(0, 16))]);
+var img4 = getImage(PIC[ floor( random(0, 16))]);
+draw = function() {
+    textAlign(CENTER,CENTER);
+    if (continent==="logo") {
+        background(0, 165, 255);
+        noStroke();
+        fill(0, 155, 0);
+        rect(0,groundmoveY,600,groundmoveh);
+        fill(115, 78, 43);//dirt
+        ellipse(300,groundwithseed,50,50);
+        fill(0, 155, 0);
+        ellipse(dirtdis,300,50,50);
+        shovel(shovelX,shovelY);
+        fill(0, 155, 0);
+        ellipse(dirttaken,300,50,50);
+        shovelX+=2;
+        fill(255, 255, 255);
+        ellipse(300,seed,10,10);
+        if (shovelX>300) {
+            shovelX-=2;
+            shovelY+=2;
+        }
+        if (shovelY>270) {
+            shovelY-=2;
+            dirtdis=-50;
+            dirttaken=shovelX+3;
+            shovelX+=3;
+            seed+=2;
+        }
+        if (seed>300) {
+            seed-=2;
+            groundmoveY+=2;
+            groundmoveh-=2;
+            groundwithseed+=2;
+            seed+=2;
+        }
+        if (groundwithseed>400) {
+            groundwithseed-=2;
+        }
+        if (seed>410) {
+            seed-=2;
+            treegrowth();
+        }
+        if (groundmoveY>400) {
+            groundmoveY-=2;
+            groundmoveh+=2;
+            treestumpY-=2;
+            treestumpH+=2;
+        }
+        if (treestumpY<325) {
+            treestumpY+=2;
+            treestumpH-=2;
+            treegreenright++;
+            treegreenleft--;
+            treegreenup-=2;
+        }
+        if (treegreenright>400) {
+            treegreenright--;
+            treegreenleft++;
+        }
+        if (treegreenup<30) {
+            treegreenup+=2;
+            continent="menu";
+        }
+    }//I would highly advise you not to see this logo. It is bad...
+    if (continent==="menu") {
+        if (hour()>6 && hour()<18) {
+            background(0, 155, 255);
+        } else {
+            background(0, 55, 155);
+        }
+        image(img,0,0,600,500);
+        noStroke();
+        textBackground(225,175,150,50,color(0, 0, 0));
+        textBackground(190,235,220,30,color(0, 0, 0));
+        textBackground(90,455,420,30,color(0, 0, 0));
+        textBackground(250,25,100,60,color(0, 0, 0));
+        textFont(createFont("fantasy"));
+        textSize(10);
+        text("© 2018",15,10);
+        textSize(40);
+        fill(255, 255, 255);
+        text("EARTH",300,200);
+        textSize(15);
+        text("Help the planet!",300,250);
+        textFont(createFont("Comic Sans MS"));
+        textSize(20);
+        text("Nature cared for us. It's time we care for it.",300,470);
+        textFont(createFont("Hi"));
+        text(month()+"/"+day()+"/"+year(),300,70);
+        if (hour()<12 || hour()===24) {
+            text(hour()+":"+minute()+":"+second()+" AM",300,40);
+        } else if (hour()===12) {
+            text(hour()+":"+minute()+":"+second()+" PM",300,40);
+        } else if (hour()>12 && hour()<24) {
+            text(hour()-12+":"+minute()+":"+second()+" PM",300,40);
+        }
+        circleButton(150,100,100,"What?",25,"what");
+        circleButton(450,100,100,"Why?",25,"why");
+        circleButton(300,350,100,"How?",25,"how");
+        circleButton(575,25,50,"Earth\nday",15,"earthday");
+    }
+    if (continent==="what") {
+        background(0, 155, 255);
+        image(img2,0,0,600,500);
+        noStroke();
+        textBackground(200,50,200,50,color(0, 255, 100));
+        textBackground(50,150,500,200,color(0, 255, 100));
+        fill(255, 255, 255);
+        textSize(40);
+        text("WHAT?",300,75);
+        fill(0, 0, 0);
+        textSize(15);
+        text("What is this all about?\n\nWe need to preserve our planet.\nHumans aren't the only inhabitants here! I hope all who reads this agrees.\nPlease support this team in it's goals, and if wanting, join the team.\nRequirements are in the code.",300,250);
+        circleButton(300,450,100,"Back",25,"menu");
+    }
+    if (continent==="why") {
+        background(0, 155, 255);
+        image(img3,0,0,600,500);
+        noStroke();
+        textBackground(200,50,200,50,color(0, 255, 100));
+        textBackground(50,150,500,200,color(0, 255, 100));
+        fill(255, 255, 255);
+        textSize(40);
+        text("WHY?",300,75);
+        fill(0, 0, 0);
+        textSize(15);
+        text("Do I really have to say anything?\n\nThe earth is suffering from human pollution.",300,250);
+        circleButton(300,450,100,"Back",25,"menu");
+    }
+    if (continent==="how") {
+        background(0, 155, 255);
+        image(img4,0,0,600,500);
+        noStroke();
+        textBackground(200,50,200,50,color(0, 255, 100));
+        textBackground(50,150,500,200,color(0, 255, 100));
+        fill(255, 255, 255);
+        textSize(40);
+        text("HOW?",300,75);
+        fill(0, 0, 0);
+        textSize(15);
+        text("Don't worry folks. No research needed. All the info you'll need will be\nprovided in the uncoming programs, each explaining a simple (sometimes not)\ntask that will help you become a better person in helping our planet.\nYou don't always have to do everything, just do what you can, and help\nout as much as you can..",300,250);
+        circleButton(300,450,100,"Back",25,"menu");
+    }
+    if (continent==="earthday") {
+        background(255, 255, 255);
+        noStroke();
+        image(getImage("landscapes/lotus-garden"),0,0,600,500);
+        textBackground(200,50,200,50,color(0, 255, 100));
+        textBackground(50,150,500,200,color(0, 255, 100));
+        fill(255, 255, 255);
+        textSize(35);
+        text("EARTH DAY",300,75);
+        fill(0, 0, 0);
+        textSize(15);
+        text("What kind of nature club would this be if there was no earth day timer?",300,175);
+        textSize(50);
+        noFill();
+        strokeWeight(5);
+        stroke(130, 130, 130);
+        ellipse(100,280,80,60);//month
+        ellipse(200,280,80,60);//day
+        ellipse(300,280,80,60);//hour
+        ellipse(400,280,80,60);//minute
+        ellipse(500,280,80,60);//second
+        stroke(255, 0, 0);
+        if (month()>4) {
+            text(12 - month() + 4,100,280);
+            arc(100,280,80,60,0,(12-month()+4)*30);
+        } else {
+            text(4-month(),100,280);
+            arc(100,280,80,60,0,(4-month())*30);
+        }
+        if (month()===11) {
+            text(30-day(),200,280);
+            arc(200,280,80,60,0,(30-day())*12);
+        } else if (month()===12 || month()===1 || month()===3) {
+            text(31-day(),200,280);
+            arc(200,280,80,60,0,(31-day())*11.6);
+        } else if (month()===2) {
+            text(28-day(),200,280);
+            arc(200,280,80,60,0,(28-day())*12.857);
+        } else if (month()===4 && day()<=22) {
+            text(22-day(),200,280);
+            arc(200,280,80,60,0,(22-day())*16.36);
+        } else if (month()===4 && day()>22) {
+            text(30-day(),200,280);
+            arc(200,280,80,60,0,(8-day())*45);
+        }
+        text(24-hour(),300,280);
+        arc(300,280,80,60,0,(24-hour())*15);
+        text(60-minute(),400,280);
+        arc(400,280,80,60,0,(60-minute())*6);
+        text(60-second(),500,280);
+        arc(500,280,80,60,0,(60-second())*6);
+        textSize(20);
+        text("Time left until Earth day:",300,215);
+        text("Months",100,330);
+        text("Days",200,330);
+        text("Hours",300,330);
+        text("Minutes",400,330);
+        text("Seconds",500,330);
+        circleButton(300,450,100,"Back",25,"menu");
+    }
+};
