@@ -1,0 +1,305 @@
+//My next upcoming game
+
+var score = 0;
+var weapons = [1, "Hard\nCandy", "Candy\nSniper", "Bomb\nCandy", "Candy\nBazooka", "Candy\nGas", "Ultimate\nCandy"];
+
+var Omnom = function() {
+    this.ys = [50,130,210,290,370];
+    this.x = -40;
+    this.y = this.ys[round(random(0,this.ys.length-1))];
+    this.sz = 15;
+    this.sp = random(0.5,1);
+    
+    this.health = 100;
+};
+var omnoms = [];
+Omnom.prototype.draw = function() {
+    pushMatrix();
+    scale(1/50*this.sz);
+    translate(this.x*50/(this.sz),this.y*50/(this.sz));  
+    {
+    // body of the frog
+    {
+    fill (114, 227, 22);
+    stroke (0, 0, 0);
+    strokeWeight (3);
+    arc (0, 0, 200, 200, 181, 360);
+    rect (0 - 100, 0 + 0, 0, 50);
+    rect (0 + 100, 0 + 0, 0, 50);
+    noStroke ();
+    rect (0 - 98, 0, 197, 72);
+    stroke (0, 0, 0);
+    }
+    // right leg
+    {
+    beginShape ();
+    fill (71, 143, 64);
+    vertex (0 + 101, 0 + 39);
+    vertex (0 + 130, 0 + 51);
+    vertex (0 + 115, 0 + 73);
+    vertex (0, 0 + 73);
+    endShape ();
+    fill (0, 0, 0);
+    rect (0 + 100, 0, 0, 56);
+    }
+    // left leg
+    {
+    beginShape ();
+    fill (71, 143, 64);
+    vertex (0 - 101, 0 + 36);
+    vertex (0 - 132, 0 + 51);
+    vertex (0 - 117, 0 + 73);
+    vertex (0, 0 + 73);
+    endShape ();
+    fill (0, 0, 0);
+    rect (0 - 100, 0, 0, 44);
+    }
+    // stomach
+    {
+    fill (71, 143, 64);
+    noStroke ();
+    arc (0, 0 + 56, 125, 33, 350, 554);
+    }
+    
+    
+    // mouth shadow
+    {
+    ellipse (0, 0 - 12, 190, 71);
+    }
+    // head
+    {
+    fill (114, 227, 22);
+    stroke (0, 0, 0);
+    strokeWeight (5);
+    bezier (0 - 100, 0 - 40, 0 - 89, 0 + -137, 0 + 89, 0 + -137, 0 + 100, 0 - 40);
+    bezier (0 - 100, 0 - 40, 0 - 89, 0 + 29, 0 + 89, 0 + 29, 0 + 100, 0 - 40);
+    }
+    // antenna
+    {
+    fill (71, 143, 64);
+    strokeWeight (2);
+    bezier (0 - 3, 0 - 135, 0 - 9, 0 - 163, 0 + 48, 0 - 171, 0 + 8, 0 - 135);
+    fill (114, 227, 22);
+    noStroke ();
+    ellipse (0 + 15, 0 - 152, 13, 13);
+    fill (71, 143, 64);
+    noStroke ();
+    rect (0 - 2, 0 - 138, 10, 23);
+    noFill ();
+    stroke (0, 0, 0);
+    strokeWeight (2);
+    beginShape ();
+    vertex (0 - 2, 0 - 138);
+    vertex (0 - 2, 0 - 113);
+    vertex (0 + 8, 0 - 113);
+    vertex (0 + 8, 0 - 135);
+    endShape ();
+    }
+    // eyes
+    {
+    fill (255, 255, 255);
+    strokeWeight (3);
+    ellipse (0 - 34, 0 - 62, 80, 93);
+    ellipse (0 + 34, 0 - 62, 80, 93);
+    noStroke ();
+    rect (0 - 50, 0 - 86, 63, 48);
+    fill (0, 0, 0);
+    ellipse (0 - 14, 0 - 70, 16, 19);
+    ellipse (0 + 14, 0 - 72, 15, 18);
+    }
+    // teeth starting from the left
+    {
+    fill (255, 255, 255);
+    stroke (0, 0, 0);
+    strokeWeight (4);
+    bezier (0 - 96, 0 - 23, 0 - 93, 0 - 11, 0 - 105, 0 + 14, 0 - 66, 0 + 1);
+    bezier (0 - 58, 0 + 5, 0 - 52, 0 + 15, 0 - 41, 0 + 44, 0 - 14, 0 + 15);
+    bezier (0 + 58, 0 + 5, 0 + 50, 0 + 15, 0 + 32, 0 + 44, 0 + 14, 0 + 13);
+    bezier (0 + 96, 0 - 23, 0 + 93, 0 + -11, 0 + 105, 0 + 20, 0 + 66, 0 + 1);
+    }
+    // arms
+    {
+    fill (114, 227, 22);
+    strokeWeight (3);
+    rect (0 + -77, 0 + 31, 39, 51, 25);
+    rect (0 + 37, 0 + 31, 39, 53, 25);
+    noStroke ();
+    rect (0 + 25, 0 + 29, 50, 25);
+    rect (0 - 75, 0 + 29, 50, 25);
+    }
+    }
+    fill(0, 0, 0);
+    rect(-100,-140,200,20);
+    fill(255, 0, 0);
+    rect(-100,-140,this.health*2,20);
+    popMatrix();
+    
+    this.x+=this.sp;
+};
+
+var Explosion = function(x, y, xs, ys){
+    this.x = x;
+    this.y = y;
+    this.life = 200;
+    this.xSpd = xs;
+    this.ySpd = ys;
+    this.lifeSpan = random(20, 10);
+};
+var explosions = [];
+Explosion.prototype.boom = function(){
+    if (this.life > 0){
+        this.life -= this.lifeSpan;
+        this.x+=this.xSpd;
+        this.y+=this.ySpd;
+        fill(255-this.life/4, 50+this.life/2, 0);
+        ellipse(this.x,this.y,this.life/10,this.life/10);
+    }
+};
+Explosion.prototype.fire = function(){
+    noStroke();
+    if (this.life > 0){
+        this.life -= this.lifeSpan;
+        this.x+=this.xSpd;
+        this.y+=this.ySpd;
+        fill(255-this.life/4, 50+this.life/2, 0);
+        ellipse(this.x,this.y,this.life/20,this.life/20);
+    }
+};
+
+var Bomb = function() {
+    this.x = mouseX;
+    this.y = mouseY;
+    this.timer = 0;
+};
+var bombs = [];
+Bomb.prototype.draw = function() {
+    if (this.timer<60) {
+        noStroke();
+        fill(0, 0, 0);
+        ellipse(this.x,this.y,40,40);
+        noFill();
+        stroke(255, 255, 255);
+        strokeWeight(3);
+        arc(this.x,this.y,30,30,170,230);
+        arc(this.x+10,this.y-20,30,20,170,229-this.timer);
+        explosions.push(new Explosion(this.x-this.timer/11, this.y-30+this.timer/5, random(-1, 1), random(-0.1, -2)));
+        this.timer+=0.5;
+        for (var i in explosions){
+            explosions[i].fire();
+            explosions.splice(i);
+        }
+    
+    } else if (this.timer<80) {
+        explosions.push(new Explosion(this.x, this.y, random(-5, 5), random(-5, 5)));
+        this.timer+=0.5;
+        for (var i in explosions){
+            explosions[i].boom();
+        }
+        
+    }
+    if (this.timer>80) {
+        this.timer=0;
+    }
+};
+
+draw = function() {
+    cursor("hand");
+    background(255, 255, 255);
+    for(var i = 0; i < width; i+=100) {
+        for (var e = -50; e <= height-230; e += 80) {
+            image(getImage("cute/GrassBlock"),i,e);
+        }
+    }//Background
+    
+    for (var i = omnoms.length-1; i>-1; i--) {
+        omnoms[i].draw();
+        if (omnoms[i].x > width+40) {
+            omnoms.splice(i,1);
+        }
+    }//Omnoms
+    if (frameCount % 60 === 3) {
+        omnoms.push(new Omnom());
+    }//Omnoms
+    
+    for (var i = bombs.length-1; i>-1; i--) {
+        bombs[i].draw();
+        if (bombs[i].timer >= 80) {
+            bombs.splice(i,1);
+        }
+    }//Bombs3
+    
+    switch(weapons[0]){
+        case 1:
+            
+        break;
+        case 2:
+            noFill();
+            stroke(0, 0, 0, 100);
+            strokeWeight(750);
+            ellipse(mouseX,mouseY,850,850);
+            noStroke();
+            fill(0, 0, 0);
+            rect(mouseX-10,mouseY-2,20,4);
+            rect(mouseX-2,mouseY-10,4,20);
+            strokeWeight(3);
+        break;
+        case 3:
+            noStroke();
+            fill(0, 0, 0);
+            ellipse(mouseX,mouseY,40,40);
+            noFill();
+            stroke(255, 255, 255);
+            arc(mouseX,mouseY,30,30,170,230);
+            arc(mouseX+10,mouseY-20,30,20,170,230);
+        break;
+    }
+    
+    noStroke();
+    fill(0, 0, 0);
+    rect(0,405,width,100);
+    fill(255, 255, 255);
+    textAlign(CENTER,CENTER);
+    text("Destroy all Omnoms by clicking on them.\nWeapons:",width/2,425);
+    textAlign(LEFT,CENTER);
+    text("Score: "+score,5,415);
+    textAlign(CENTER,CENTER);
+    for (var i = 25; i < width; i+=width/6) {
+        fill(255, 255, 255);
+        rect(i,445,50,50,20);
+        if (weapons[0]===(i-25)/100+1) {
+            rect(i-5,440,60,60,20);
+        }
+        fill(0, 0, 0);
+        text(weapons[(i-25)/100+1],i+25,470);
+    }
+};
+
+keyPressed = function() {
+    if (keyCode===49 || keyCode===50 || keyCode===51 || keyCode===52 || keyCode===53 || keyCode===54) {
+        weapons[0]=keyCode-48;
+    }
+};
+mouseClicked = function() {
+    if (weapons[0]===3) {
+        bombs.push(new Bomb());
+    }
+    
+    //Some of this code is made by Eric Sursa
+    omnoms.forEach(function(o) {
+        if (mouseX > o.x-40 && mouseX< o.x+40 && mouseY > o.y-50 && mouseY < o.y+23) {
+            switch(weapons[0]){
+                case 1:
+                    o.health -=20;
+                break;
+                case 2:
+                    o.health -=50;
+                break;
+            }
+            if (o.health <= 0) {
+                o.x = 640;
+                score++;
+            }
+        }
+        
+    });
+};
