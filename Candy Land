@@ -1,0 +1,556 @@
+/************** CANDY LAND **************\
+ *       The Candy Land board game!
+ * 
+ * 
+ * For help on how to play the game, click the ? button on the top left section of the canvas.
+ * 
+ * Please note that this is not entirely my work. This is also Chester Bank's work. Below are the things that each of us did. (Also this is a still a WIP)
+ * 
+ * ***Here is what Chester Banks did:
+ * {
+ * Title slide
+ * Card function (single color only)
+ * Board function
+ * Character graphic
+ * }
+ * ***Here is what I did:
+ * {
+ * Added double color card function (moves two spaces at a time)
+ * Added grey starting block
+ * Added pink special blocks
+ * Corrcted color order
+ * Added help section
+ * }
+ * ***Others who helped:
+ * Larry Serflaten
+ * Bob Lyon
+**/
+
+//NOTICE: THIS LINK GOES OFF KA
+//https://www.bing.com/images/search?view=detailV2&ccid=Y%2flIK5dv&id=D25D00AAC28E326C21C60CE6AD774DFBDAB5C4FE&thid=OIP.Y_lIK5dvCBQWGFun2-M7OwHaFf&mediaurl=http%3a%2f%2fsummercamppro.com%2fwp-content%2fuploads%2f2015%2f03%2fCandy-Land.jpg&exph=1187&expw=1600&q=candyland+spaces&simid=607995852388174831&selectedIndex=1&ajaxhist=0
+
+textAlign(CENTER, CENTER);
+
+textFont(createFont("Avenir-Black"));
+
+var y = -10170;//win=550
+
+var scene = 'Home';
+
+var cards = "RGOBYPA".split("");//these are the cards available
+
+var card = 'S';//this is the current card
+
+var firstBoard = 'RGOBYPRGOBYPRGOBYPRGOBYPRGOBYPRAGOBYPRGOBAYPRGOBYPRGOBYPRGOBYPRGAOBYPRGOBYPRGOBYPRGOBYPRGOBAYPRGOBYPRGOBYPRGOBYPRAGOBYPRGOBYAPRGOBYPRS';//this is the board (58) without S
+
+var board = firstBoard.split(""); // R = red, P = purple, Y = yellow, B = blue, O = orange
+
+var onBlock = 'S';//which color am I on?
+
+var images = {
+
+    'bg1': function(){
+
+        var rects = [];
+
+        for(var i = 0; i < width; i += 20){
+
+            for(var j = 0; j < height; j += 20){
+
+                rects.push({x: i, y: j, br: random(205), hue: random(255), w: random(10, 50)});
+
+            }
+
+        }
+
+        
+
+        background(255, 255, 255);
+
+        
+
+        for(var i = 0; i < 1000; i += 35){
+
+            stroke(232, 21, 21);
+
+            strokeWeight(15);
+
+            line(i, 0, 0, i);
+
+            stroke(0, 0, 0, 30);
+
+            strokeWeight(5);
+
+            line(i, 0, 0, i);
+
+        }
+
+        
+
+        var textGradient = get(0, 0, width, height);
+
+        
+
+        background(0, 0, 0);
+
+        fill(255, 255, 255);
+
+        textSize(80);
+
+        text("CANDYLAND", width/2, height/2);
+
+        
+
+        var Text = get(0, 0, width, height);
+
+        
+
+        textGradient.mask(Text);
+
+            
+
+        background(255, 255, 255);
+
+        noStroke();
+
+        colorMode(HSB);
+
+        for(var i in rects){
+
+            fill(rects[i].hue, 255, 255, rects[i].br);
+
+            rect(rects[i].x, rects[i].y, rects[i].w, 25, 10);
+
+            fill(0, 0, 0, 10);
+
+            rect(rects[i].x, rects[i].y, rects[i].w, 10, 10);
+
+        }
+
+        filter(BLUR, 2);
+
+        
+
+        colorMode(RGB);
+
+        fill(255, 255, 255, 55);
+
+        for(var i = 0; i < 360; i += 15){
+
+            text("CANDYLAND", width/2 + sin(i)*10, height/2 + cos(i)*10);
+
+        }
+
+        fill(0, 0, 0);
+
+        for(var i = 0; i < 360; i += 15){
+
+            text("CANDYLAND", width/2 + sin(i)*3, height/2 + cos(i)*3);
+
+        }
+
+        image(textGradient, 0, 0);
+
+        
+
+        fill(45);
+
+        textSize(20);
+
+        text("and the missing candy king", 300, 350);
+
+        
+
+        return get(0, 0, 600, 600);
+
+    },
+
+    'title': function(){
+
+        
+
+    },
+
+};//title images
+
+for(var i in images){
+
+    images[i]();
+
+}//title images
+
+var clicked = false;//mainly for menu and cards
+
+var help = 0;
+
+mouseReleased = function(){
+
+    clicked = true;
+    
+    if (mouseX<45 && mouseY<45) {
+        help=1;
+    }
+
+};//when I press
+
+var howManyMove = 1;//controls if it is 2 spaces or 1
+
+var hmmtimer = 17;
+
+draw = function() {
+
+    if(scene === "Home"){
+
+        image(images.bg1, 0, 0);//menu images
+
+        if(clicked){
+
+            scene = "Game";
+
+        }//if I click, scene game
+
+    }
+
+    if(scene === "Game"){
+
+        if (howManyMove<1.9) {
+            
+            howManyMove=1;
+            
+        } else if (howManyMove>=1.9 || card!=='A') {
+            
+            howManyMove=2;
+            
+        }
+
+        background(245);
+
+        textSize(20);
+
+        for(var i in board){//put the spaces
+
+            noStroke();
+
+            switch(board[i]){
+
+                case 'R':
+
+                    fill(255, 0, 0);
+
+                    break;
+
+                case 'P':
+
+                    fill(151, 20, 227);
+
+                    break;
+
+                case 'Y':
+
+                    fill(228, 235, 21);
+
+                    break;
+
+                case 'B':
+
+                    fill(21, 157, 235);
+
+                    break;
+
+                case 'O':
+
+                    fill(235, 134, 33);
+
+                    break;
+
+                case 'G':
+
+                    fill(15, 250, 30);
+
+                    break;
+
+                case 'S':
+
+                    fill(163, 143, 159);
+
+                    break;
+
+                case 'A':
+
+                    fill(255, 0, 204);
+
+                    break;
+
+            }//makes the colors
+
+            strokeWeight(10);
+
+            stroke(0, 0, 0, 50);
+
+            rect(250, y + i * 80, 100, 80, 50);//makes the trail colorful
+
+            noStroke();
+
+            fill(0, 0, 0, 50);
+
+            rect(250, y + i * 80, 100, 80, 50);//darkens the trail color
+
+            fill(235, 235, 235, 30);
+
+            triangle(250, y + i * 80, 250, y + 80 + i * 80, 350,  y + i * 80);//adds details to the trail color
+
+        }
+
+        for(var i in board){
+
+            if(y + i * 80 < 475 && y + i * 80 > 465){
+
+                onBlock = board[i];
+
+            }//checks to see if character is on the right color
+
+        }
+
+        {
+
+        fill(209, 138, 62);
+
+        ellipse(300, 510, 40, 40);//body
+
+        noFill();
+
+        stroke(255);
+
+        strokeWeight(5);
+
+        bezier(280, 510, 300, 520, 300, 500, 320, 510);//curly hair
+
+        fill(255);
+
+        arc(300, 510, 40, 40, 0, 180);//hair
+
+        stroke(0);
+
+        point(295, 500);//left eye
+
+        point(305, 500);//right eye
+
+        }//character
+
+        if(onBlock !== card){
+
+            y += 5;
+
+        }//if im not on the right color as the card, I move forward
+        
+        if (onBlock===card && howManyMove>1) {
+            
+            y+=5;
+            
+            hmmtimer--;
+            
+        }//if im on the right color yet the card is x2, I still move forward
+        
+        if (hmmtimer<=0) {
+            
+            hmmtimer=17;
+            
+            howManyMove=1;
+            
+        }//if im on the right color and the card is x2, it becomes x1
+        
+        fill(25);
+
+        text("You are on a " + onBlock + " block.\nYou drew a " + card + " card.", 120, 300);//which block and card?
+        
+        if(mouseX > 410 && mouseX < 560 && mouseY > 200 && mouseY < 300){
+            
+            cursor('pointer');
+            
+            if(clicked && onBlock === card){
+
+                card = cards[floor(random(cards.length))];
+                howManyMove=random(1,2);
+
+            }
+        
+        } else {
+            
+            cursor('default');
+            
+        }
+        
+        //This up there is the card code
+        
+        strokeWeight(5);
+
+        stroke(163, 163, 163);
+
+        fill(217, 217, 217);
+
+        for(var i = 400; i < 415; i += 5){
+
+            rect(i, i - 200, 150, 100);
+
+        }//the cards graphic
+
+        fill(255, 255, 255);
+
+        stroke(212, 212, 212);
+
+        rect(410, 350, 150, 100, 5);//current card graphic
+
+        noStroke();
+
+        switch(card){
+
+            case 'R':
+
+                fill(240, 17, 43);
+
+                break;
+
+            case 'P':
+
+                fill(151, 20, 227);
+
+                break;
+
+            case 'Y':
+
+                fill(228, 235, 21);
+
+                break;
+
+            case 'B':
+
+                fill(21, 157, 235);
+
+                break;
+
+            case 'O':
+
+                fill(235, 134, 33);
+
+                break;
+
+            case 'G':
+
+                fill(15, 250, 30);
+
+                break;
+
+            case 'S':
+
+                    fill(163, 143, 159);
+
+                break;
+
+            case 'A':
+
+                    fill(255, 0, 204);
+
+                    break;
+
+        }//this here controls the color of the current card
+
+        ellipse(485, 400, 70, 70);//this is the circle on the card
+
+        fill(0, 0, 0, 30);
+
+        arc(485, 400, 70, 70, -40, 140);//this adds details to the color of the current card
+
+        textSize(30);
+
+        fill(194, 194, 194);
+
+        round(howManyMove);
+
+        text("x"+round(howManyMove),540,430);
+
+        pushMatrix();
+
+        translate(485, 260);
+
+        rotate(-25);
+
+        text("candyland", 0, 0);//name on the unused cards
+
+        popMatrix();
+
+        text("?",25,25);
+        
+        stroke(194, 194, 194);
+        
+        noFill();
+        
+        ellipse(25,25,40,40);
+        
+        stroke(0, 0, 0, 100);
+        
+        noFill();
+        
+        strokeWeight(600);
+        
+        if (help===1) {
+            rect(-38,179,675,665);
+            fill(255, 255, 255);
+            text("This is you!",150,500);
+        }
+        
+        textSize(20);
+        
+        if (help===2) {
+            rect(-280,-25,800,625);
+            fill(255, 255, 255);
+            text("This is the current block\nthat you are on.",120,400);
+        }
+        
+        if (help===3) {
+            rect(-280,0,800,625);
+            fill(255, 255, 255);
+            text("This is the current card\nthat you have taken",120,400);
+            
+        }
+        
+        if (help===4) {
+            rect(80,-110,800,735);
+            fill(255, 255, 255);
+            text("Click here to get a\nnew card",470,100);
+            
+        }
+        
+        if (help===5) {
+            rect(90,40,790,725);
+            fill(255, 255, 255);
+            text("This is the card that you\nchose.",470,500);
+            
+        }
+        
+        if (help===6) {
+            rect(220,110,640,640);
+            fill(255, 255, 255);
+            text("If you get x1 then you\nmove 1 space. If you\nget x2, then you move\n2 spaces.",470,520);
+            
+        }
+        
+    }
+
+    clicked = false;//makes sure I need o click th card in order to use it
+
+};
+mouseClicked = function() {
+    
+    if (help>=6) {
+        
+        help=0;
+        
+    }
+    
+    if (help>0) {
+        
+        help++;
+        
+    }
+    
+};
