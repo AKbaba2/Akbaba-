@@ -1,0 +1,98 @@
+//https://www.khanacademy.org/computer-programming/apple-logo-evolution-click-canvas/5814085831753728
+
+//https://www.khanacademy.org/computer-programming/text-writer/969600201
+
+
+var loadingBy = 0;
+var loading = 0;
+var loadingTime = 0;
+var appleSign = function(x,y,scal) {
+    pushMatrix(); {
+    scale(scal);
+    translate(x,y);
+    beginShape();{
+        vertex(248,66);
+        bezierVertex(252,123,190,135,191,134);
+        bezierVertex(193,77,233,71, 248,66);
+    }endShape();
+    beginShape();{
+        vertex(184,138);
+        bezierVertex(186,137,147,111,106,145);
+        bezierVertex(62,175,69,279,128,324);
+        bezierVertex(148,336,154,349,185,337);
+        bezierVertex(218,315,231,330,246,337);
+        bezierVertex(271,348,287,348,325,263);
+        bezierVertex(277,232,292,163,321,158);
+        bezierVertex(298,140,289,121,249,132);
+        bezierVertex(200,148,200,142,185,138);
+    }endShape();
+    } popMatrix();//apple sign
+};
+var scenes = "startup";
+
+draw = function() {
+    if (scenes==="startup") {
+        background(207, 207, 207);
+        loadingTime++;
+        fill(117, 117, 117);
+        noStroke();
+        appleSign(388,267,0.5);
+        fill(186, 186, 186);
+        rect(200,400,200,5,20);
+        fill(117, 117, 117);
+        rect(200,400,loading,5,20);
+        loading+=loadingBy;
+        loadingBy=1;
+        if (loading>=200) {
+            loadingBy=0;
+        }
+        if (loadingTime>=230) {
+            scenes = "login";
+        }
+    }
+    if (scenes==="login") {
+        background(92, 92, 92);
+        image(getImage("animals/horse"),194,69,180,120);
+        fill(0, 0, 0,0);
+        strokeWeight(103);
+        stroke(92, 92, 92);
+        ellipse(300,128,220,220);
+        strokeWeight(1);
+        fill(255, 255, 255);
+        textAlign(CENTER,CENTER);
+        textSize(15);
+        text("Speedy Horse",300,210);
+        fill(125, 125, 125);
+        rect(200,260,200,30,10);
+        fill(186, 186, 186);
+        text("Enter Password",260,276);
+        ellipse(175,275,30,30);
+        stroke(92, 92, 92);
+        strokeWeight(3);
+        line(170,275,177,268);
+        line(170,275,177,282);
+        stroke(255, 255, 255);
+        strokeWeight(2);
+        fill(255, 255, 255,0);
+        ellipse(300,450,40,40);
+        triangle(290,450,305,442,305,458);
+        ellipse(200,450,40,40);
+        line(184,460,216,460);
+        arc(400,450,40,40,-60,240);
+        line(400,425,400,445);
+        fill(255, 255, 255);
+        textSize(13);
+        text("Sleep",200,486);
+        text("Restart",300,486);
+        text("Shut Down",400,486);
+    }
+};
+
+//425 h / 640 w
+
+
+
+
+
+/**image(getImage("landscapes/mountain_matterhorn"),0,0,600,500);
+//https://fr.khanacademy.org/computer-programming/image-library-2-all-263-images/6526312608169984**/
