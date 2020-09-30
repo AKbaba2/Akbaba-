@@ -1,0 +1,240 @@
+//Circuits
+//https://www.google.com/search?q=circuits&rlz=1C1CHBF_enUS762US762&source=lnms&tbm=isch&sa=X&ved=0ahUKEwjJw-v1v6LeAhXCq4MKHYx5BaYQ_AUIDigB&biw=1536&bih=762#imgrc=31JEVH9qWYS86M:
+var scene="menu";
+var transition = 0;
+var transitionBy = 0;
+var lightbulb=function(x,y, txt, sceneTo) {
+    strokeWeight(2);
+    noStroke();
+    fill(255, 255, 255, 200);
+    ellipse(x,y,100,100);
+    fill(255, 255, 255);
+    rect(x-25,y+40,50,10);
+    stroke(0, 0, 0);
+    noFill();
+    arc(x,y,100,100,122,418);
+    fill(138, 138, 138);
+    rect(x-25,y+50,50,30);
+    line(x-25,y+43,x-25,y+50);
+    line(x+25,y+43,x+25,y+50);
+    
+    strokeWeight(1);
+    line(x+15,y,x+15,y+50);
+    line(x-15,y,x-15,y+50);
+    line(x-15,y,x-7,y+12);
+    line(x-5,y-11,x-7,y+12);
+    line(x-5,y-11,x-1,y+8);
+    line(x+6,y+-1,x-1,y+8);
+    line(x+6,y+-2,x+8,y+12);
+    line(x+15,y,x+8,y+12);
+    fill(0, 0, 0);
+    textSize(20);
+    textFont(createFont("comic sans MS"));
+    text(txt,x,y-25);
+    noStroke();
+    if (mouseX>x-50 && mouseX<x+50 && mouseY>y-50 && mouseY<y+80) {
+        fill(255, 255, 100, 100);
+        for (var l = 100; l > 0; l-=35) {
+            fill(255, 255, 0, l/2);
+            ellipse(x,y,l,l);
+        }
+    }
+    if (mouseIsPressed && mouseX>x-50 && mouseX<x+50 && mouseY>y-50 && mouseY<y+80) {
+        scene=sceneTo;
+    }
+};
+var nameBulbs=function(x,y,size) {
+    noStroke();
+for (var s = 255; s > 0; s-=60) {
+    pushMatrix();
+    translate(x,y);
+    scale(size);
+    fill(255, 255, 0, s/2);
+    ellipse(0,0,s,s);
+    popMatrix();
+}
+};
+var circuitDesign=function() {
+fill(0, 155, 0);
+rect(100,350,400,200);
+noFill();
+beginShape(LINES);
+stroke(255, 255, 255);
+{
+vertex(300,550);
+vertex(300,530);
+vertex(300,530);
+vertex(310,520);
+vertex(310,520);
+vertex(310,520);
+}
+vertex(290,550);
+vertex(290,525);
+vertex(290,525);
+vertex(305,510);
+vertex(305,510);
+vertex(335,510);
+vertex(336,510);
+vertex(355,495);
+endShape();
+};
+draw = function() {
+    transition+=transitionBy;
+    if (scene==="menu") {
+        background(102, 102, 102);
+        lightbulb(200,100,"PLAY","play");
+        lightbulb(400,100,"HOW","how");
+        fill(0, 0, 0);
+        textFont(createFont("fantasy"));
+        textAlign(CENTER,CENTER);
+        textSize(80);
+        text("CIRCUITS",300,280);
+        pushMatrix();
+        translate(100,-20); {
+        {
+        nameBulbs(82,288,0.1);
+        nameBulbs(76,276,0.1);
+        nameBulbs(64,281,0.1);
+        nameBulbs(62,294,0.1);
+        nameBulbs(62,310,0.1);
+        nameBulbs(66,324,0.1);
+        nameBulbs(81,324,0.1);
+        nameBulbs(80,310,0.1);
+        }//C bulbs
+        {
+        fill(102, 102, 102);
+        rect(70,279,5,42,20);
+        rect(75,296,17,10);
+        noFill();
+        stroke(102, 102, 102);
+        strokeWeight(5);
+        rect(49,264,45,72,22);
+        }//C covering
+        {
+        nameBulbs(106,277,0.1);
+        nameBulbs(106,292,0.1);
+        nameBulbs(106,306,0.1);
+        nameBulbs(106,323,0.1);
+        }//I bulbs
+        {
+        stroke(102, 102, 102);
+        rect(95,266,22,68);
+        }//I covering
+        {
+        nameBulbs(129,278,0.1);
+        nameBulbs(146,278,0.1);
+        nameBulbs(146,293,0.1);
+        nameBulbs(130,296,0.1);
+        nameBulbs(130,311,0.1);
+        nameBulbs(130,324,0.1);
+        nameBulbs(149,324,0.1);
+        nameBulbs(149,306,0.1);
+        }//R bulbs
+        {
+        stroke(102, 102, 102);
+        rect(118,266,42,68);
+        fill(102, 102, 102);
+        noStroke();
+        arc(137,287,10,14,270,450);
+        arc(137,309,10,10,270,450);
+        arc(155,274,10,14,211,417);
+        triangle(150,300,158,304,158,296);
+        rect(137,309,5,26);
+        }//R covering
+        {
+        nameBulbs(192,288,0.1);
+        nameBulbs(186,276,0.1);
+        nameBulbs(174,281,0.1);
+        nameBulbs(172,294,0.1);
+        nameBulbs(172,310,0.1);
+        nameBulbs(176,324,0.1);
+        nameBulbs(191,324,0.1);
+        nameBulbs(190,310,0.1);
+        }//C bulbs
+        {
+        fill(102, 102, 102);
+        rect(180,279,5,42,20);
+        rect(185,296,18,10);
+        noFill();
+        stroke(102, 102, 102);
+        strokeWeight(5);
+        rect(160,264,45,72,22);
+        }//C covering
+        {
+        nameBulbs(216,278,0.1);
+        nameBulbs(216,295,0.1);
+        nameBulbs(216,315,0.1);
+        nameBulbs(226,325,0.1);
+        nameBulbs(238,278,0.1);
+        nameBulbs(238,295,0.1);
+        nameBulbs(238,315,0.1);
+        }//U bulbs
+        {
+        stroke(102, 102, 102);
+        rect(205,266,43,69);
+        noStroke();
+        fill(102, 102, 102);
+        arc(226.5,319,5,5,0,180);
+        rect(224,269,5,50);
+        }//U covering
+        {
+        nameBulbs(260,277,0.1);
+        nameBulbs(260,292,0.1);
+        nameBulbs(260,306,0.1);
+        nameBulbs(260,323,0.1);
+        }//I bulbs
+        {
+        stroke(102, 102, 102);
+        rect(249,266,22,68);
+        }//I covering
+        {
+        nameBulbs(296,277,0.1);
+        nameBulbs(285,277,0.1);
+        nameBulbs(290,292,0.1);
+        nameBulbs(290,306,0.1);
+        nameBulbs(290,323,0.1);
+        }//T bulbs
+        {
+        stroke(102, 102, 102);
+        beginShape();
+        vertex(310,273);
+        vertex(310,266);
+        vertex(272,266);
+        vertex(272,284);
+        vertex(279,284);
+        vertex(279,334);
+        vertex(301,334);
+        vertex(301,284);
+        vertex(306,284);
+        endShape();
+        }//T covering
+        {
+        nameBulbs(334,280,0.1);
+        nameBulbs(322,283,0.1);
+        nameBulbs(325,298,0.1);
+        nameBulbs(340,308,0.1);
+        nameBulbs(335,323,0.1);
+        nameBulbs(319,320,0.1);
+        }//S bulbs
+        {
+        stroke(102, 102, 102);
+        rect(307,265,43,71);
+        noStroke();
+        fill(102, 102, 102);
+        triangle(327,287,350,287,350,305);
+        triangle(329,310,305,310,311,295);
+        arc(329,287,6,15,180,360);
+        arc(329,310,6,25,0,180);
+        triangle(310,268,309,280,321,268);
+        triangle(348,268,348,280,336,268);
+        triangle(348,334,348,325,336,335);
+        triangle(310,334,309,323,321,335);
+        }//S covering
+        } popMatrix();//light name
+        circuitDesign();
+    }
+    if (scene==="how") {
+        background(0, 0, 0);
+        lightbulb(300,500,"BACK","menu");
+    }
+};
